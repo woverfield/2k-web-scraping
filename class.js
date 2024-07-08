@@ -14,15 +14,15 @@ const scrapeSite = async () => {
   links.each((index, element) => {
     const link = $(element).attr("href");
     const teamName = $(element).text().trim();
-    result.push({link, teamName});
+    result.push({ link, teamName });
   });
 
-
-  const players = []
-  const scrapePromises = result.map(team => scrapeTeam(team.link, team.teamName, players));
+  const players = [];
+  const scrapePromises = result.map((team) =>
+    scrapeTeam(team.link, team.teamName, players)
+  );
   await Promise.all(scrapePromises);
 
-  console.log(players)
   return players;
 };
 
@@ -35,9 +35,11 @@ const scrapeTeam = async (url, teamName, players) => {
     const playerOvr = $(element).find(".rating-updated").text().trim();
 
     if (playerName && playerOvr) {
-      players.push({playerName, teamName, playerOvr});
+      players.push({ playerName, teamName, playerOvr });
     }
   });
 };
 
-scrapeSite();
+scrapeSite().then((result) => {
+  console.log(result);
+});
