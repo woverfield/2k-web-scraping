@@ -35,11 +35,21 @@ const scrapeTeam = async (url, teamName, players) => {
     const playerOvr = $(element).find(".rating-updated").text().trim();
 
     if (playerName && playerOvr) {
-      players.push({ playerName, teamName, playerOvr });
+      players.push({
+        name: playerName,
+        team: teamName,
+        overall: parseInt(playerOvr),
+        type: "allt",
+      });
     }
   });
 };
 
-scrapeSite().then((result) => {
-  console.log(result);
-});
+scrapeSite()
+  .then((alltPlayersArray) => {
+    const alltPlayersJSON = JSON.stringify(alltPlayersArray, null, 2);
+    console.log(alltPlayersJSON);
+  })
+  .catch((error) => {
+    console.error("Error scraping site:", error);
+  });
