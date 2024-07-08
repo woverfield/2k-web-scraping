@@ -1,28 +1,43 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
+const axios = require("axios");
+const cheerio = require("cheerio");
 
 const scrapeSite = async () => {
-    const url = 'https://www.nba2klab.com/nba2k-player-ratings';
-    const { data } = await axios.get(url);
+  const url = "https://www.2kratings.com/classic-teams";
+  const { data } = await axios.get(url);
 
-    const $ = cheerio.load(data);
+  const $ = cheerio.load(data);
 
-    const scriptContents = $('script#__NEXT_DATA__').html();
+  const links = $("td:first-child a");
 
-    const jsonData = JSON.parse(scriptContents);
+  const result = [];
 
-    const players = jsonData.props.pageProps.data;
-
-    const results = players.map(player => ({
-        Player: player.Player,
-        Team: player.Team,
-        Overall: player.Overall,
-    }));
-
-    return results;
-}
+  links.each((index, element) => {
+    const link = $(element).attr("href");
+    const teamName = $(element).text().trim();
+    result.push({link, teamName});
+  });
 
 
-scrapeSite().then((result) => {
-    console.log(result);
-})
+  const players = []
+  const scrapePromises = result.map(team => scrapeTeam(team.link, team.teamName, players));
+  await Promise.all(scrapePromises);
+
+  console.log(players)
+  return players;
+};
+
+const scrapeTeam = async (url, teamName, players) => {
+  const { data } = await axios.get(url);
+  const $ = cheerio.load(data);
+
+  $("tr").each((index, element) => {
+    const playerName = $(element).find(".entry-font").text().trim();
+    const playerOvr = $(element).find(".rating-updated").text().trim();
+
+    if (playerName && playerOvr) {
+      players.push({playerName, teamName, playerOvr});
+    }
+  });
+};
+
+scrapeSite();
