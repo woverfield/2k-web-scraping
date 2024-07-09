@@ -14,19 +14,21 @@ const scrapeSite = async () => {
   links.each((index, element) => {
     const link = $(element).attr("href");
     const teamName = $(element).text().trim();
-    result.push({ link, teamName });
+    const teamImg = $(element).find("img").attr("src");
+
+    result.push({ link, teamName, teamImg });
   });
 
   const players = [];
   const scrapePromises = result.map((team) =>
-    scrapeTeam(team.link, team.teamName, players)
+    scrapeTeam(team.link, team.teamName, team.teamImg, players)
   );
   await Promise.all(scrapePromises);
 
   return players;
 };
 
-const scrapeTeam = async (url, teamName, players) => {
+const scrapeTeam = async (url, teamName, teamImg, players) => {
   const { data } = await axios.get(url);
   const $ = cheerio.load(data);
 
@@ -40,6 +42,7 @@ const scrapeTeam = async (url, teamName, players) => {
         team: teamName,
         overall: parseInt(playerOvr),
         type: "allt",
+        teamImg: teamImg,
       });
     }
   });

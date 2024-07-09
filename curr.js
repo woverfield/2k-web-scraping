@@ -2,31 +2,56 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 
 const scrapeSite = async () => {
-  const url = "https://www.nba2klab.com/nba2k-player-ratings";
+  const url = "https://www.2kratings.com/current-teams";
   const { data } = await axios.get(url);
 
   const $ = cheerio.load(data);
 
-  const scriptContents = $("script#__NEXT_DATA__").html();
+  const links = $("td:first-child a");
 
-  const jsonData = JSON.parse(scriptContents);
+  const result = [];
 
-  const players = jsonData.props.pageProps.data;
+  links.each((index, element) => {
+    const link = $(element).attr("href");
+    const teamName = $(element).text().trim();
+    const teamImg = $(element).find("img").attr("src");
 
-  const results = players.map((player) => ({
-    name: player.Player,
-    team: player.Team,
-    overall: player.Overall,
-    type: "curr",
-  }));
+    result.push({ link, teamName, teamImg });
+  });
 
-  return results;
+  const players = [];
+  const scrapePromises = result.map((team) =>
+    scrapeTeam(team.link, team.teamName, team.teamImg, players)
+  );
+  await Promise.all(scrapePromises);
+
+  return players;
+};
+
+const scrapeTeam = async (url, teamName, teamImg, players) => {
+  const { data } = await axios.get(url);
+  const $ = cheerio.load(data);
+
+  $("tr").each((index, element) => {
+    const playerName = $(element).find(".entry-font").text().trim();
+    const playerOvr = $(element).find(".rating-updated").text().trim();
+
+    if (playerName && playerOvr) {
+      players.push({
+        name: playerName,
+        team: teamName,
+        overall: parseInt(playerOvr),
+        type: "curr",
+        teamImg: teamImg,
+      });
+    }
+  });
 };
 
 scrapeSite()
-  .then((currPlayersArray) => {
-    const currPlayersJSON = JSON.stringify(currPlayersArray, null, 2);
-    console.log(currPlayersJSON);
+  .then((alltPlayersArray) => {
+    const alltPlayersJSON = JSON.stringify(alltPlayersArray, null, 2);
+    console.log(alltPlayersJSON);
   })
   .catch((error) => {
     console.error("Error scraping site:", error);
