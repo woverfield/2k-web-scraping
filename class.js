@@ -21,7 +21,7 @@ const scrapeSite = async () => {
 
   const players = [];
   const scrapePromises = result.map((team) =>
-    scrapeTeam(team.link, team.teamName, players)
+    scrapeTeam(team.link, team.teamName, team.teamImg, players)
   );
   await Promise.all(scrapePromises);
 
