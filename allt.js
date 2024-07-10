@@ -35,6 +35,7 @@ const scrapeTeam = async (url, teamName, teamImg, players) => {
   $("tr").each((index, element) => {
     const playerName = $(element).find(".entry-font").text().trim();
     const playerOvr = $(element).find(".rating-updated").text().trim();
+    const playerImg = $(element).find(".entry-bg img").attr("data-src");
 
     if (playerName && playerOvr) {
       players.push({
@@ -43,6 +44,7 @@ const scrapeTeam = async (url, teamName, teamImg, players) => {
         overall: parseInt(playerOvr),
         type: "allt",
         teamImg: teamImg,
+        playerImg: playerImg,
       });
     }
   });
