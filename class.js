@@ -35,16 +35,26 @@ const scrapeTeam = async (url, teamName, teamImg, players) => {
   $("tr").each((index, element) => {
     const playerName = $(element).find(".entry-font").text().trim();
     const playerOvr = $(element).find(".rating-updated").text().trim();
-    const playerImg = $(element).find(".entry-bg img").attr("data-src");
+    const playerMiscElement = $(element).find(
+      ".entry-subtext-font.crop-subtext-font a"
+    );
+    const playerMisc = [];
 
-    if (playerName && playerOvr) {
+    playerMiscElement.each((idx, element) => {
+      const miscData = $(element).text().trim();
+      if (miscData.length > 0) {
+        playerMisc.push(miscData);
+      }
+    });
+
+    if (playerName && playerOvr && playerMisc.length > 0) {
       players.push({
         name: playerName,
         team: teamName,
         overall: parseInt(playerOvr),
         type: "class",
         teamImg: teamImg,
-        playerImg: playerImg,
+        playerMisc: playerMisc,
       });
     }
   });
