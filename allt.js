@@ -1,70 +1,60 @@
-const axios = require("axios");
-const cheerio = require("cheerio");
+const { chromium } = require('playwright');
 
-const scrapeSite = async () => {
-  const url = "https://www.2kratings.com/all-time-teams";
-  const { data } = await axios.get(url);
-
-  const $ = cheerio.load(data);
-
-  const links = $("td:first-child a");
-
-  const result = [];
-
-  links.each((index, element) => {
-    const link = $(element).attr("href");
-    const teamName = $(element).text().trim();
-    const teamImg = $(element).find("img").attr("src");
-
-    result.push({ link, teamName, teamImg });
-  });
-
-  const players = [];
-  const scrapePromises = result.map((team) =>
-    scrapeTeam(team.link, team.teamName, team.teamImg, players)
-  );
-  await Promise.all(scrapePromises);
-
-  return players;
-};
-
-const scrapeTeam = async (url, teamName, teamImg, players) => {
-  const { data } = await axios.get(url);
-  const $ = cheerio.load(data);
-
-  $("tr").each((index, element) => {
-    const playerName = $(element).find(".entry-font").text().trim();
-    const playerOvr = $(element).find(".rating-updated").text().trim();
-    const playerMiscElement = $(element).find(
-      ".entry-subtext-font.crop-subtext-font a"
+async function scrapeSite() {
+  const browser = await chromium.launch({ headless: false });
+  const page = await browser.newPage();
+  try {
+    await page.goto('https://www.2kratings.com/all-time-teams', { waitUntil: 'domcontentloaded' });
+    const links = await page.$$eval('td:first-child a', links =>
+      links.map(link => ({
+        link: link.getAttribute('href'),
+        teamName: link.textContent.trim(),
+        teamImg: link.querySelector('img') ? link.querySelector('img').src : ''
+      }))
     );
-    const playerMisc = [];
-
-    playerMiscElement.each((idx, element) => {
-      const miscData = $(element).text().trim();
-      if (miscData.length > 0) {
-        playerMisc.push(miscData);
-      }
-    });
-
-    if (playerName && playerOvr && playerMisc.length > 0) {
-      players.push({
-        name: playerName,
-        team: teamName,
-        overall: parseInt(playerOvr),
-        type: "allt",
-        teamImg: teamImg,
-        playerMisc: playerMisc,
-      });
+    const players = [];
+    for (const team of links) {
+      const teamUrl = team.link.startsWith('http') ? team.link : `https://www.2kratings.com${team.link}`;
+      try {
+        await page.goto(teamUrl, { waitUntil: 'domcontentloaded' });
+        const teamPlayers = await page.$$eval(
+          'tr',
+          (rows, args) => {
+            const { teamName, teamImg } = args;
+            return Array.from(rows).map(row => {
+              const playerName = row.querySelector('.entry-font')?.textContent.trim();
+              const playerOvr = row.querySelector('.rating-updated')?.textContent.trim();
+              const playerMisc = Array.from(row.querySelectorAll('.entry-subtext-font.crop-subtext-font a')).map(a => a.textContent.trim()).filter(Boolean);
+              if (playerName && playerOvr && playerMisc.length > 0) {
+                return {
+                  name: playerName,
+                  team: teamName,
+                  overall: parseInt(playerOvr),
+                  type: 'allt',
+                  teamImg: teamImg,
+                  playerMisc: playerMisc,
+                };
+              }
+              return null;
+            }).filter(Boolean);
+          },
+          { teamName: team.teamName, teamImg: team.teamImg }
+        );
+        players.push(...teamPlayers);
+      } catch (err) {}
     }
-  });
-};
+    await browser.close();
+    return players;
+  } catch (err) {
+    await browser.close();
+    throw err;
+  }
+}
 
 scrapeSite()
-  .then((alltPlayersArray) => {
-    const alltPlayersJSON = JSON.stringify(alltPlayersArray, null, 2);
-    console.log(alltPlayersJSON);
+  .then(players => {
+    console.log(JSON.stringify(players, null, 2));
   })
-  .catch((error) => {
-    console.error("Error scraping site:", error);
+  .catch(() => {
+    process.exit(1);
   });
