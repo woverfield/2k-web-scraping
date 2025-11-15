@@ -1,0 +1,24 @@
+{
+  "name": "nba2k-api-scraper",
+  "version": "1.0.0",
+  "description": "Enhanced web scraper for NBA 2K player ratings from 2kratings.com",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "scrape:all": "node index.js --all",
+    "scrape:current": "node index.js --type curr",
+    "scrape:classic": "node index.js --type class",
+    "scrape:alltime": "node index.js --type allt"
+  },
+  "keywords": [
+    "nba2k",
+    "scraper",
+    "2kratings",
+    "player-data"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.40.0"
+  }
+}
