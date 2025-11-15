@@ -1,0 +1,139 @@
+/**
+ * Team Roster Scraper
+ * Scrapes team listings and basic player data from team roster pages
+ */
+
+import { BASE_URL, TEAM_SELECTORS, TEAM_TYPES, SCRAPER_OPTIONS } from './config.js';
+import { normalizeUrl, logProgress, logError, delay, parseIntSafe } from './utils.js';
+
+/**
+ * Scrape team links from the team listing page
+ * @param {Page} page - Playwright page instance
+ * @param {string} teamType - Team type (curr, class, allt)
+ * @returns {Promise<Array>} Array of team objects with links, names, and logos
+ */
+export async function scrapeTeamLinks(page, teamType) {
+  const config = TEAM_TYPES[teamType];
+  if (!config) {
+    throw new Error(`Invalid team type: ${teamType}`);
+  }
+
+  const url = `${BASE_URL}${config.url}`;
+  logProgress(`Navigating to ${config.name} teams: ${url}`);
+
+  await page.goto(url, { waitUntil: SCRAPER_OPTIONS.waitUntil });
+
+  // Extract team links from the page
+  const teams = await page.$$eval(TEAM_SELECTORS.teamLinks, (links) => {
+    return links.map(link => {
+      const img = link.querySelector('img');
+      return {
+        link: link.getAttribute('href'),
+        teamName: link.textContent.trim(),
+        teamImg: img ? img.src : ''
+      };
+    });
+  });
+
+  logProgress(`Found ${teams.length} teams`);
+  return teams;
+}
+
+/**
+ * Scrape basic player data from a team roster page
+ * @param {Page} page - Playwright page instance
+ * @param {Object} team - Team object with link, teamName, teamImg
+ * @param {string} teamType - Team type (curr, class, allt)
+ * @returns {Promise<Array>} Array of player objects with basic data
+ */
+export async function scrapeTeamRoster(page, team, teamType) {
+  const teamUrl = normalizeUrl(team.link);
+
+  try {
+    logProgress(`Scraping roster: ${team.teamName}`);
+
+    await page.goto(teamUrl, { waitUntil: SCRAPER_OPTIONS.waitUntil });
+
+    // Extract player data from roster table
+    const players = await page.$$eval(
+      TEAM_SELECTORS.playerRows,
+      (rows, args) => {
+        const { teamName, teamImg, teamType } = args;
+
+        return Array.from(rows).map(row => {
+          // Extract basic player info from table row
+          const nameEl = row.querySelector('.entry-font');
+          const ratingEl = row.querySelector('.rating-updated');
+          const miscElements = row.querySelectorAll('.entry-subtext-font.crop-subtext-font a');
+
+          if (!nameEl || !ratingEl) {
+            return null;
+          }
+
+          const playerName = nameEl.textContent.trim();
+          const playerRating = ratingEl.textContent.trim();
+          const playerMisc = Array.from(miscElements)
+            .map(el => el.textContent.trim())
+            .filter(Boolean);
+
+          // Must have name, rating, and at least one misc field
+          if (!playerName || !playerRating || playerMisc.length === 0) {
+            return null;
+          }
+
+          // Extract player page link if available
+          const playerLink = nameEl.querySelector('a')?.getAttribute('href') || '';
+
+          return {
+            name: playerName,
+            playerUrl: playerLink,
+            team: teamName,
+            teamType: teamType,
+            overall: parseInt(playerRating),
+            teamImg: teamImg,
+            playerMisc: playerMisc
+          };
+        }).filter(Boolean);
+      },
+      { teamName: team.teamName, teamImg: team.teamImg, teamType: teamType }
+    );
+
+    logProgress(`Found ${players.length} players on ${team.teamName}`);
+
+    // Add delay between teams to avoid rate limiting
+    await delay(SCRAPER_OPTIONS.delayBetweenTeams);
+
+    return players;
+  } catch (error) {
+    logError(`Failed to scrape ${team.teamName}`, error);
+    return []; // Return empty array on error to continue with other teams
+  }
+}
+
+/**
+ * Scrape all teams for a given team type
+ * @param {Page} page - Playwright page instance
+ * @param {string} teamType - Team type (curr, class, allt)
+ * @returns {Promise<Array>} Array of all players with basic data
+ */
+export async function scrapeAllTeams(page, teamType) {
+  // Get all team links
+  const teams = await scrapeTeamLinks(page, teamType);
+
+  const allPlayers = [];
+  let teamCount = 0;
+
+  // Scrape each team's roster
+  for (const team of teams) {
+    teamCount++;
+    logProgress(`Processing team ${teamCount}/${teams.length}: ${team.teamName}`);
+
+    const players = await scrapeTeamRoster(page, team, teamType);
+    allPlayers.push(...players);
+  }
+
+  logProgress(`Completed scraping ${teamCount} teams`);
+  logProgress(`Total players found: ${allPlayers.length}`);
+
+  return allPlayers;
+}
