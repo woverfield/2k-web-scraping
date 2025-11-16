@@ -84,7 +84,9 @@ export async function scrapePlayerDetails(page, basicPlayer) {
         if (text.includes('Position:')) {
           const positionMatch = text.match(/Position:\s*(.+)/);
           if (positionMatch) {
-            details.position = positionMatch[1].trim();
+            const positionStr = positionMatch[1].trim();
+            // Parse into array for filtering: "SF / SG" -> ["SF", "SG"]
+            details.positions = positionStr.split('/').map(p => p.trim());
           }
         }
       }

@@ -17,7 +17,7 @@ export const insertPlayer = mutation({
     team: v.string(),
     teamType: v.union(v.literal("curr"), v.literal("class"), v.literal("allt")),
     overall: v.number(),
-    position: v.optional(v.string()),
+    positions: v.optional(v.array(v.string())),
     height: v.optional(v.string()),
     weight: v.optional(v.string()),
     wingspan: v.optional(v.string()),
@@ -46,7 +46,7 @@ export const upsertPlayer = mutation({
     team: v.string(),
     teamType: v.union(v.literal("curr"), v.literal("class"), v.literal("allt")),
     overall: v.number(),
-    position: v.optional(v.string()),
+    positions: v.optional(v.array(v.string())),
     height: v.optional(v.string()),
     weight: v.optional(v.string()),
     wingspan: v.optional(v.string()),
@@ -139,6 +139,22 @@ export const deleteAllPlayers = mutation({
       await ctx.db.delete(player._id);
     }
     return { deleted: players.length };
+  },
+});
+
+/**
+ * Update player positions array (for migration)
+ */
+export const updatePlayerPositions = mutation({
+  args: {
+    playerId: v.id("players"),
+    positions: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.playerId, {
+      positions: args.positions,
+    });
+    return { success: true };
   },
 });
 

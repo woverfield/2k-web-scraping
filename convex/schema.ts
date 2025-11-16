@@ -18,7 +18,7 @@ export default defineSchema({
     team: v.string(),
     teamType: v.union(v.literal("curr"), v.literal("class"), v.literal("allt")),
     overall: v.number(),
-    position: v.optional(v.string()),
+    positions: v.optional(v.array(v.string())), // Array for filtering: ["PG", "SG"]
 
     // Physical attributes
     height: v.optional(v.string()),
