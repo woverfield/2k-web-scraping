@@ -60,7 +60,7 @@ export function Header() {
           }
         )}
       >
-        <a className="rounded-md p-2 hover:bg-accent" href="#">
+        <a className="rounded-md p-2 hover:bg-accent" href="/">
           <Logo className="h-4" />
         </a>
         <div className="hidden items-center gap-2 md:flex">
@@ -76,7 +76,9 @@ export function Header() {
               {link.label}
             </a>
           ))}
-          <Button>Get API Key</Button>
+          <Button asChild>
+            <a href="/dashboard">Get API Key</a>
+          </Button>
         </div>
         <Button
           className="md:hidden"
@@ -107,7 +109,9 @@ export function Header() {
           ))}
         </div>
         <div className="flex flex-col gap-2">
-          <Button className="w-full">Get API Key</Button>
+          <Button className="w-full" asChild>
+            <a href="/dashboard">Get API Key</a>
+          </Button>
         </div>
       </MobileMenu>
     </header>

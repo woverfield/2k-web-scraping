@@ -34,20 +34,20 @@ export function CodeBlock({
           variant="ghost"
           size="icon"
           className={cn(
-            "absolute right-2 top-2 h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100",
-            isCopied && "opacity-100"
+            "absolute right-2 top-2 h-8 w-8 bg-slate-800 text-slate-300 opacity-70 transition-all hover:bg-slate-700 hover:text-slate-100 hover:opacity-100 group-hover:opacity-100 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100",
+            isCopied && "opacity-100 bg-green-900 text-green-400 hover:bg-green-900 dark:bg-green-950 dark:text-green-400"
           )}
           onClick={() => copyToClipboard(code)}
         >
           {isCopied ? (
-            <Check className="h-4 w-4 text-green-500" />
+            <Check className="h-4 w-4" />
           ) : (
             <Copy className="h-4 w-4" />
           )}
         </Button>
         <pre
           className={cn(
-            "overflow-x-auto rounded-lg bg-slate-900 p-4 text-sm dark:bg-slate-950",
+            "overflow-x-auto rounded-lg border border-slate-300 bg-slate-900 p-4 text-sm dark:border-slate-700 dark:bg-black",
             filename && "rounded-t-none"
           )}
         >

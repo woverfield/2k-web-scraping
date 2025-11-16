@@ -187,6 +187,51 @@ export const deactivateApiKey = mutation({
 });
 
 /**
+ * Regenerate an API key (creates new key, deactivates old one)
+ */
+export const regenerateApiKey = mutation({
+  args: { oldKey: v.string() },
+  handler: async (ctx, args) => {
+    // Find existing API key
+    const existingKey = await ctx.db
+      .query("apiKeys")
+      .withIndex("by_key", (q) => q.eq("key", args.oldKey))
+      .first();
+
+    if (!existingKey) {
+      throw new Error("API key not found");
+    }
+
+    if (!existingKey.isActive) {
+      throw new Error("API key is already inactive");
+    }
+
+    // Deactivate old key
+    await ctx.db.patch(existingKey._id, {
+      isActive: false,
+    });
+
+    // Generate new key with same user info
+    const newKey = generateApiKey();
+    const newApiKeyId = await ctx.db.insert("apiKeys", {
+      key: newKey,
+      email: existingKey.email,
+      name: existingKey.name,
+      requestCount: 0,
+      rateLimit: existingKey.rateLimit,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+    });
+
+    return {
+      apiKey: newKey,
+      id: newApiKeyId,
+      rateLimit: existingKey.rateLimit,
+    };
+  },
+});
+
+/**
  * Get API key statistics for dashboard
  */
 export const getApiKeyStats = query({
@@ -226,6 +271,12 @@ export const getApiKeyStats = query({
     resetTime.setHours(now.getHours() + 1, 0, 0, 0);
 
     return {
+      apiKey: {
+        email: apiKey.email,
+        name: apiKey.name,
+        createdAt: apiKey.createdAt,
+        rateLimit: apiKey.rateLimit,
+      },
       requestCount: requestsThisHour,
       totalRequests: apiKey.requestCount,
       lastRequest: apiKey.lastRequest,

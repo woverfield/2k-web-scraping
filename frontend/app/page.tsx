@@ -1,34 +1,65 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LanguageTabs } from "@/components/language-tabs";
+import { RegistrationDialog } from "@/components/registration-dialog";
+import { API_KEY_STORAGE_KEY } from "@/lib/constants";
 
 export default function Home() {
+  const [showRegistration, setShowRegistration] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check if user already has an API key
+    const apiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+    setHasApiKey(!!apiKey);
+  }, []);
+
+  const handleGetApiKey = () => {
+    if (hasApiKey) {
+      router.push("/dashboard");
+    } else {
+      setShowRegistration(true);
+    }
+  };
+
+  const handleRegistrationSuccess = (apiKey: string) => {
+    setHasApiKey(true);
+    setShowRegistration(false);
+    router.push("/dashboard");
+  };
+
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden border-b bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
-        <div className="container mx-auto px-4 py-12 md:py-16">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl">
-              Access NBA 2K Player Ratings via REST API
-            </h1>
-            <p className="mb-8 text-lg text-slate-600 dark:text-slate-400">
-              Get detailed player attributes, team rosters, and historical data from NBA 2K ratings.
-              Fast, reliable, and developer-friendly API with built-in caching and authentication.
-            </p>
-            <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Button size="lg" asChild>
-                <Link href="/docs">Get Started</Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/dashboard">View Dashboard</Link>
-              </Button>
+    <>
+      <div className="min-h-screen">
+        {/* Hero Section */}
+        <section className="relative overflow-hidden border-b bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+          <div className="container mx-auto px-4 py-12 md:py-16">
+            <div className="mx-auto max-w-3xl text-center">
+              <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl">
+                Access NBA 2K Player Ratings via REST API
+              </h1>
+              <p className="mb-8 text-lg text-slate-600 dark:text-slate-400">
+                Get detailed player attributes, team rosters, and historical data from NBA 2K ratings.
+                Fast, reliable, and developer-friendly API with built-in caching and authentication.
+              </p>
+              <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+                <Button size="lg" onClick={handleGetApiKey}>
+                  {hasApiKey ? "View Dashboard" : "Get API Key"}
+                </Button>
+                <Button size="lg" variant="outline" asChild>
+                  <Link href="/docs">Read Documentation</Link>
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
       {/* Features Section */}
       <section className="container mx-auto px-4 py-16">
@@ -155,13 +186,20 @@ print(data['data']['overallRating'])  # 97`,
         <div className="container mx-auto px-4 py-16 text-center">
           <h2 className="mb-4 text-3xl font-bold">Ready to get started?</h2>
           <p className="mb-8 text-slate-600 dark:text-slate-400">
-            Check out the documentation to learn more about available endpoints and features
+            Create your free API key and start building with NBA 2K data today
           </p>
-          <Button size="lg" asChild>
-            <Link href="/docs">Read the Docs</Link>
+          <Button size="lg" onClick={handleGetApiKey}>
+            {hasApiKey ? "Go to Dashboard" : "Get Your API Key"}
           </Button>
         </div>
       </section>
     </div>
+
+    <RegistrationDialog
+      open={showRegistration}
+      onOpenChange={setShowRegistration}
+      onSuccess={handleRegistrationSuccess}
+    />
+    </>
   );
 }
