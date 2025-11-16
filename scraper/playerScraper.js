@@ -1,10 +1,11 @@
 /**
  * Player Detail Scraper
  * Scrapes comprehensive player data from individual player pages
+ * Updated to work with actual 2kratings.com HTML structure
  */
 
-import { PLAYER_SELECTORS, SCRAPER_OPTIONS } from './config.js';
-import { normalizeUrl, logProgress, logError, delay, parseIntSafe, slugify } from './utils.js';
+import { SCRAPER_OPTIONS } from './config.js';
+import { normalizeUrl, logProgress, logError, delay, slugify } from './utils.js';
 
 /**
  * Scrape detailed player data from individual player page
@@ -23,213 +24,162 @@ export async function scrapePlayerDetails(page, basicPlayer) {
   try {
     await page.goto(playerUrl, { waitUntil: SCRAPER_OPTIONS.waitUntil });
 
-    // Scrape all player details
-    const playerDetails = await page.evaluate((selectors) => {
+    // Scrape all player details using the ACTUAL HTML structure
+    const playerDetails = await page.evaluate(() => {
       const details = {};
 
-      // Helper function to get text content
-      const getText = (selector) => {
-        const el = document.querySelector(selector);
-        return el ? el.textContent.trim() : '';
-      };
+      // Extract physical stats and build from paragraph text
+      const paragraphs = Array.from(document.querySelectorAll('p'));
+      for (const p of paragraphs) {
+        const text = p.textContent;
 
-      // Helper function to get attribute value as number
-      const getAttrValue = (selector) => {
-        const el = document.querySelector(selector);
-        if (!el) return null;
-        const value = el.textContent.trim();
-        const parsed = parseInt(value);
-        return isNaN(parsed) ? null : parsed;
-      };
+        // Extract height (e.g., "6 feet 9 inches")
+        const heightMatch = text.match(/(\d+)\s*feet\s*(\d+)\s*inches/);
+        if (heightMatch) {
+          details.height = `${heightMatch[1]}'${heightMatch[2]}"`;
+        }
 
-      // Extract build/archetype
-      details.build = getText(selectors.build);
+        // Extract weight (e.g., "weighs 250 pounds")
+        const weightMatch = text.match(/weighs.*?(\d+)\s*pounds/);
+        if (weightMatch) {
+          details.weight = `${weightMatch[1]} lbs`;
+        }
 
-      // Extract physical stats
-      details.height = getText(selectors.height);
-      details.weight = getText(selectors.weight);
-      details.wingspan = getText(selectors.wingspan);
+        // Extract wingspan (e.g., "wingspan of 7 feet")
+        const wingspanMatch = text.match(/wingspan.*?(\d+)\s*feet(?:\s*(\d+)\s*inches)?/);
+        if (wingspanMatch) {
+          const feet = wingspanMatch[1];
+          const inches = wingspanMatch[2] || '0';
+          details.wingspan = `${feet}'${inches}"`;
+        }
+
+        // Extract build (e.g., "Physical Post Point Forward Build")
+        const buildMatch = text.match(/(\w+\s+\w+(?:\s+\w+)?)\s+Build/);
+        if (buildMatch) {
+          details.build = buildMatch[1];
+        }
+      }
+
+      // Extract position from links
+      const positionLinks = Array.from(document.querySelectorAll('a[href*="/lists/"]'));
+      const positions = [];
+      for (const link of positionLinks) {
+        const text = link.textContent.trim();
+        if (text.match(/^(PG|SG|SF|PF|C|Point Guard|Shooting Guard|Small Forward|Power Forward|Center)$/i)) {
+          if (!positions.includes(text)) positions.push(text);
+        }
+      }
+      details.position = positions.join('/');
 
       // Extract player image
-      const imgEl = document.querySelector(selectors.image);
-      details.playerImage = imgEl ? imgEl.src : '';
+      const playerImgEl = document.querySelector('a[data-lightbox="player"] img');
+      if (playerImgEl) {
+        details.playerImage = playerImgEl.dataset.src || playerImgEl.src || '';
+      }
 
-      // Extract all attributes by category
-      details.attributes = {
-        shooting: {
-          closeShot: getAttrValue(selectors.attributes.closeShot),
-          midRange: getAttrValue(selectors.attributes.midRange),
-          threePoint: getAttrValue(selectors.attributes.threePoint),
-          freeThrow: getAttrValue(selectors.attributes.freeThrow),
-          shotIQ: getAttrValue(selectors.attributes.shotIQ),
-          offensiveConsistency: getAttrValue(selectors.attributes.offensiveConsistency)
-        },
-        finishing: {
-          drivingLayup: getAttrValue(selectors.attributes.drivingLayup),
-          drivingDunk: getAttrValue(selectors.attributes.drivingDunk),
-          standingDunk: getAttrValue(selectors.attributes.standingDunk),
-          postHook: getAttrValue(selectors.attributes.postHook),
-          postFade: getAttrValue(selectors.attributes.postFade),
-          postControl: getAttrValue(selectors.attributes.postControl),
-          drawFoul: getAttrValue(selectors.attributes.drawFoul),
-          hands: getAttrValue(selectors.attributes.hands)
-        },
-        playmaking: {
-          passAccuracy: getAttrValue(selectors.attributes.passAccuracy),
-          ballHandle: getAttrValue(selectors.attributes.ballHandle),
-          passIQ: getAttrValue(selectors.attributes.passIQ),
-          passVision: getAttrValue(selectors.attributes.passVision),
-          speedWithBall: getAttrValue(selectors.attributes.speedWithBall)
-        },
-        defense: {
-          interiorDefense: getAttrValue(selectors.attributes.interiorDefense),
-          perimeterDefense: getAttrValue(selectors.attributes.perimeterDefense),
-          steal: getAttrValue(selectors.attributes.steal),
-          block: getAttrValue(selectors.attributes.block),
-          helpDefenseIQ: getAttrValue(selectors.attributes.helpDefenseIQ),
-          passPerception: getAttrValue(selectors.attributes.passPerception),
-          defensiveConsistency: getAttrValue(selectors.attributes.defensiveConsistency)
-        },
-        athleticism: {
-          speed: getAttrValue(selectors.attributes.speed),
-          agility: getAttrValue(selectors.attributes.agility),
-          strength: getAttrValue(selectors.attributes.strength),
-          vertical: getAttrValue(selectors.attributes.vertical),
-          stamina: getAttrValue(selectors.attributes.stamina),
-          hustle: getAttrValue(selectors.attributes.hustle),
-          overallDurability: getAttrValue(selectors.attributes.overallDurability)
-        },
-        rebounding: {
-          offensiveRebound: getAttrValue(selectors.attributes.offensiveRebound),
-          defensiveRebound: getAttrValue(selectors.attributes.defensiveRebound)
-        },
-        special: {
-          intangibles: getAttrValue(selectors.attributes.intangibles),
-          potential: getAttrValue(selectors.attributes.potential)
+      // Extract all attributes from list items
+      const attributes = {};
+      const attributeListItems = document.querySelectorAll('li.mb-1');
+
+      for (const li of attributeListItems) {
+        const span = li.querySelector('.attribute-box');
+        if (!span) continue;
+
+        const value = parseInt(span.textContent.trim());
+        if (isNaN(value)) continue;
+
+        // Get attribute name (text after the span)
+        let attributeName = li.textContent.replace(span.textContent, '').trim();
+        // Remove trailing whitespace and help icons
+        attributeName = attributeName.split('\n')[0].trim();
+
+        // Convert attribute name to camelCase key
+        const key = attributeName
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+(.)/g, (_, c) => c.toUpperCase())
+          .replace(/^(.)/, (_, c) => c.toLowerCase())
+          .replace(/-/g, '');
+
+        if (key && key.length > 1) {
+          attributes[key] = value;
         }
-      };
+      }
 
-      // Extract badge information
-      details.badges = {
-        total: parseInt(getText(selectors.totalBadges)) || 0,
-        hallOfFame: parseInt(getText(selectors.hofBadges)) || 0,
-        gold: parseInt(getText(selectors.goldBadges)) || 0,
-        silver: parseInt(getText(selectors.silverBadges)) || 0,
-        bronze: parseInt(getText(selectors.bronzeBadges)) || 0,
-        list: []
-      };
+      details.attributes = attributes;
 
-      // Extract individual badges
-      const badgeItems = document.querySelectorAll(selectors.badgeItem);
-      details.badges.list = Array.from(badgeItems).map(badge => {
-        return {
-          name: badge.querySelector(selectors.badgeName)?.textContent.trim() || '',
-          tier: badge.querySelector(selectors.badgeTier)?.textContent.trim() || '',
-          category: badge.querySelector(selectors.badgeCategory)?.textContent.trim() || ''
-        };
-      }).filter(b => b.name);
+      // Extract badges
+      const badges = {};
+      const badgeCountEl = document.querySelector('.badge-count');
+      if (badgeCountEl) {
+        badges.total = parseInt(badgeCountEl.textContent.trim()) || 0;
+      }
+
+      details.badges = badges;
 
       return details;
-    }, PLAYER_SELECTORS);
+    });
 
-    // Merge basic player data with detailed data
+    // Merge with basic player data
     const enhancedPlayer = {
       ...basicPlayer,
-      slug: slugify(basicPlayer.name),
-      ...playerDetails,
-      lastUpdated: new Date().toISOString(),
-      createdAt: new Date().toISOString()
+      position: playerDetails.position || basicPlayer.position,
+      height: playerDetails.height,
+      weight: playerDetails.weight,
+      wingspan: playerDetails.wingspan,
+      build: playerDetails.build,
+      playerImage: playerDetails.playerImage,
+      attributes: playerDetails.attributes,
+      badges: playerDetails.badges,
+      lastUpdated: new Date().toISOString()
     };
 
-    // Add delay between players
-    await delay(SCRAPER_OPTIONS.delayBetweenPlayers);
-
     return enhancedPlayer;
+
   } catch (error) {
-    logError(`Failed to scrape details for ${basicPlayer.name}`, error);
-    // Return enhanced basic player on error
+    logError(`Failed to scrape detailed data for ${basicPlayer.name}: ${error.message}`);
     return enhanceBasicPlayer(basicPlayer);
   }
 }
 
 /**
- * Enhance basic player data with default structure when detailed scrape fails
+ * Fallback when detailed scraping fails
  * @param {Object} basicPlayer - Basic player data
- * @returns {Object} Player with enhanced structure but limited data
+ * @returns {Object} Enhanced basic player with defaults
  */
 function enhanceBasicPlayer(basicPlayer) {
-  // Parse position and height from playerMisc array
-  const position = basicPlayer.playerMisc[0] || '';
-  const height = basicPlayer.playerMisc[1] || '';
-
   return {
     ...basicPlayer,
-    slug: slugify(basicPlayer.name),
-    position: position,
-    height: height,
-    weight: '',
-    wingspan: '',
-    build: '',
-    playerImage: '',
-
-    // Empty attributes structure
-    attributes: {
-      shooting: {},
-      finishing: {},
-      playmaking: {},
-      defense: {},
-      athleticism: {},
-      rebounding: {},
-      special: {}
-    },
-
-    // Empty badges
-    badges: {
-      total: 0,
-      hallOfFame: 0,
-      gold: 0,
-      silver: 0,
-      bronze: 0,
-      list: []
-    },
-
-    lastUpdated: new Date().toISOString(),
-    createdAt: new Date().toISOString()
+    lastUpdated: new Date().toISOString()
   };
 }
 
 /**
- * Scrape detailed data for multiple players
+ * Scrape detailed player data for multiple players
  * @param {Page} page - Playwright page instance
  * @param {Array} basicPlayers - Array of basic player objects
- * @param {boolean} skipDetails - If true, skip detailed scraping (faster)
+ * @param {number} concurrency - Number of players to scrape concurrently (default: 1)
  * @returns {Promise<Array>} Array of enhanced player objects
  */
-export async function scrapePlayersDetails(page, basicPlayers, skipDetails = false) {
-  if (skipDetails) {
-    logProgress('Skipping detailed player scraping (basic mode)');
-    return basicPlayers.map(enhanceBasicPlayer);
-  }
-
-  logProgress(`Scraping detailed data for ${basicPlayers.length} players`);
-
+export async function scrapePlayersDetails(page, basicPlayers, concurrency = 1) {
   const enhancedPlayers = [];
-  let playerCount = 0;
+  const total = basicPlayers.length;
 
-  for (const basicPlayer of basicPlayers) {
-    playerCount++;
+  for (let i = 0; i < total; i++) {
+    const player = basicPlayers[i];
 
-    if (playerCount % 10 === 0) {
-      logProgress(`Processing player ${playerCount}/${basicPlayers.length}: ${basicPlayer.name}`);
+    // Log progress every 10 players
+    if ((i + 1) % 10 === 0) {
+      logProgress(`Processing player ${i + 1}/${total}: ${player.name}`);
     }
 
-    const enhancedPlayer = await scrapePlayerDetails(page, basicPlayer);
-    if (enhancedPlayer) {
-      enhancedPlayers.push(enhancedPlayer);
+    const enhancedPlayer = await scrapePlayerDetails(page, player);
+    enhancedPlayers.push(enhancedPlayer);
+
+    // Add delay between players to avoid rate limiting
+    if (i < total - 1) {
+      await delay(SCRAPER_OPTIONS.delayBetweenPlayers);
     }
   }
-
-  logProgress(`Completed detailed scraping for ${enhancedPlayers.length} players`);
 
   return enhancedPlayers;
 }

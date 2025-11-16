@@ -35,8 +35,13 @@ export async function scrapeTeamLinks(page, teamType) {
     });
   });
 
-  logProgress(`Found ${teams.length} teams`);
-  return teams;
+  // Deduplicate teams (page has duplicate links)
+  const uniqueTeams = Array.from(
+    new Map(teams.map(team => [team.teamName, team])).values()
+  );
+
+  logProgress(`Found ${uniqueTeams.length} teams`);
+  return uniqueTeams;
 }
 
 /**

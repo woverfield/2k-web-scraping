@@ -1,0 +1,12 @@
+{
+  "extends": "../node_modules/convex/tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2021",
+    "lib": ["ES2021"],
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "strict": true
+  },
+  "include": ["./**/*"],
+  "exclude": ["node_modules"]
+}
