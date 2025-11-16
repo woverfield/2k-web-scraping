@@ -21,8 +21,12 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@hono/zod-validator": "^0.7.4",
     "axios": "^1.7.2",
     "cheerio": "^1.0.0-rc.12",
-    "convex": "^1.29.1"
+    "convex": "^1.29.1",
+    "convex-helpers": "^0.1.104",
+    "hono": "^4.10.6",
+    "zod": "^4.1.12"
   }
 }
