@@ -33,24 +33,45 @@ export async function scrapePlayerDetails(page, basicPlayer) {
       for (const p of paragraphs) {
         const text = p.textContent;
 
-        // Extract height (e.g., "6 feet 9 inches")
-        const heightMatch = text.match(/(\d+)\s*feet\s*(\d+)\s*inches/);
+        // Extract height - try both formats
+        // Format 1: "6 feet 9 inches" (current teams)
+        let heightMatch = text.match(/(\d+)\s*feet\s*(\d+)\s*inches/);
         if (heightMatch) {
           details.height = `${heightMatch[1]}'${heightMatch[2]}"`;
+        } else {
+          // Format 2: "Height: 6'7" (201cm)" (classic/all-time teams)
+          heightMatch = text.match(/Height:\s*(\d+)'(\d+)"/);
+          if (heightMatch) {
+            details.height = `${heightMatch[1]}'${heightMatch[2]}"`;
+          }
         }
 
-        // Extract weight (e.g., "weighs 250 pounds")
-        const weightMatch = text.match(/weighs.*?(\d+)\s*pounds/);
+        // Extract weight - try both formats
+        // Format 1: "weighs 250 pounds" (current teams)
+        let weightMatch = text.match(/weighs.*?(\d+)\s*pounds/);
         if (weightMatch) {
           details.weight = `${weightMatch[1]} lbs`;
+        } else {
+          // Format 2: "Weight: 200lbs (90kg)" (classic/all-time teams)
+          weightMatch = text.match(/Weight:\s*(\d+)lbs/);
+          if (weightMatch) {
+            details.weight = `${weightMatch[1]} lbs`;
+          }
         }
 
-        // Extract wingspan (e.g., "wingspan of 7 feet")
-        const wingspanMatch = text.match(/wingspan.*?(\d+)\s*feet(?:\s*(\d+)\s*inches)?/);
+        // Extract wingspan - try both formats
+        // Format 1: "wingspan of 7 feet" (current teams)
+        let wingspanMatch = text.match(/wingspan.*?(\d+)\s*feet(?:\s*(\d+)\s*inches)?/);
         if (wingspanMatch) {
           const feet = wingspanMatch[1];
           const inches = wingspanMatch[2] || '0';
           details.wingspan = `${feet}'${inches}"`;
+        } else {
+          // Format 2: "Wingspan: 6'10" (208cm)" (classic/all-time teams)
+          wingspanMatch = text.match(/Wingspan:\s*(\d+)'(\d+)"/);
+          if (wingspanMatch) {
+            details.wingspan = `${wingspanMatch[1]}'${wingspanMatch[2]}"`;
+          }
         }
 
         // Extract build (e.g., "Physical Post Point Forward Build")
@@ -58,21 +79,26 @@ export async function scrapePlayerDetails(page, basicPlayer) {
         if (buildMatch) {
           details.build = buildMatch[1];
         }
-      }
 
-      // Extract position from links
-      const positionLinks = Array.from(document.querySelectorAll('a[href*="/lists/"]'));
-      const positions = [];
-      for (const link of positionLinks) {
-        const text = link.textContent.trim();
-        if (text.match(/^(PG|SG|SF|PF|C|Point Guard|Shooting Guard|Small Forward|Power Forward|Center)$/i)) {
-          if (!positions.includes(text)) positions.push(text);
+        // Extract position from paragraph (e.g., "Position: SF / SG")
+        if (text.includes('Position:')) {
+          const positionMatch = text.match(/Position:\s*(.+)/);
+          if (positionMatch) {
+            details.position = positionMatch[1].trim();
+          }
         }
       }
-      details.position = positions.join('/');
 
-      // Extract player image
-      const playerImgEl = document.querySelector('a[data-lightbox="player"] img');
+      // Extract player image - try multiple selectors for different page layouts
+      let playerImgEl = document.querySelector('a[data-lightbox="player"] img');
+      if (!playerImgEl) {
+        // Classic/all-time teams use a different structure
+        playerImgEl = document.querySelector('.profile-photo-bg img');
+      }
+      if (!playerImgEl) {
+        // Fallback: find image with alt containing "NBA 2K"
+        playerImgEl = document.querySelector('img[alt*="NBA 2K"]');
+      }
       if (playerImgEl) {
         details.playerImage = playerImgEl.dataset.src || playerImgEl.src || '';
       }
@@ -98,7 +124,8 @@ export async function scrapePlayerDetails(page, basicPlayer) {
           .replace(/[^\w\s-]/g, '')
           .replace(/\s+(.)/g, (_, c) => c.toUpperCase())
           .replace(/^(.)/, (_, c) => c.toLowerCase())
-          .replace(/-/g, '');
+          .replace(/-/g, '')
+          .replace(/^\d+/, ''); // Remove leading digits
 
         if (key && key.length > 1) {
           attributes[key] = value;
@@ -109,9 +136,50 @@ export async function scrapePlayerDetails(page, basicPlayer) {
 
       // Extract badges
       const badges = {};
-      const badgeCountEl = document.querySelector('.badge-count');
-      if (badgeCountEl) {
-        badges.total = parseInt(badgeCountEl.textContent.trim()) || 0;
+      const badgeElements = document.querySelectorAll('.badge-count');
+
+      badgeElements.forEach(el => {
+        const title = el.getAttribute('data-original-title') || '';
+        const value = parseInt(el.textContent.trim()) || 0;
+
+        if (title.includes('Total')) badges.total = value;
+        else if (title.includes('Legendary')) badges.legendary = value;
+        else if (title.includes('Hall of Fame')) badges.hallOfFame = value;
+        else if (title.includes('Gold')) badges.gold = value;
+        else if (title.includes('Silver')) badges.silver = value;
+        else if (title.includes('Bronze')) badges.bronze = value;
+      });
+
+      // Extract individual badge details
+      const badgeList = [];
+      const badgeCards = document.querySelectorAll('.badge-card');
+
+      for (const card of badgeCards) {
+        const nameEl = card.querySelector('h4.text-white');
+        const categoryEl = card.querySelector('.badge-pill');
+        const imgEl = card.querySelector('img[data-src*="badge.png"], img[src*="badge.png"]');
+
+        if (nameEl && imgEl) {
+          const name = nameEl.textContent.trim();
+          const category = categoryEl ? categoryEl.textContent.trim() : '';
+          const imgSrc = imgEl.getAttribute('data-src') || imgEl.src || '';
+
+          // Extract tier from image filename
+          let tier = '';
+          if (imgSrc.includes('-legendary-badge.png')) tier = 'Legendary';
+          else if (imgSrc.includes('-hof-badge.png')) tier = 'Hall of Fame';
+          else if (imgSrc.includes('-gold-badge.png')) tier = 'Gold';
+          else if (imgSrc.includes('-silver-badge.png')) tier = 'Silver';
+          else if (imgSrc.includes('-bronze-badge.png')) tier = 'Bronze';
+
+          if (name && tier) {
+            badgeList.push({ name, tier, category });
+          }
+        }
+      }
+
+      if (badgeList.length > 0) {
+        badges.list = badgeList;
       }
 
       details.badges = badges;

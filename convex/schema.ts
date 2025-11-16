@@ -32,92 +32,25 @@ export default defineSchema({
     playerImage: v.optional(v.string()),
     teamImg: v.optional(v.string()),
 
-    // Detailed attributes
-    attributes: v.optional(
-      v.object({
-        shooting: v.optional(
-          v.object({
-            closeShot: v.optional(v.number()),
-            midRange: v.optional(v.number()),
-            threePoint: v.optional(v.number()),
-            freeThrow: v.optional(v.number()),
-            shotIQ: v.optional(v.number()),
-            offensiveConsistency: v.optional(v.number()),
-          })
-        ),
-        finishing: v.optional(
-          v.object({
-            drivingLayup: v.optional(v.number()),
-            drivingDunk: v.optional(v.number()),
-            standingDunk: v.optional(v.number()),
-            postHook: v.optional(v.number()),
-            postFade: v.optional(v.number()),
-            postControl: v.optional(v.number()),
-            drawFoul: v.optional(v.number()),
-            hands: v.optional(v.number()),
-          })
-        ),
-        playmaking: v.optional(
-          v.object({
-            passAccuracy: v.optional(v.number()),
-            ballHandle: v.optional(v.number()),
-            passIQ: v.optional(v.number()),
-            passVision: v.optional(v.number()),
-            speedWithBall: v.optional(v.number()),
-          })
-        ),
-        defense: v.optional(
-          v.object({
-            interiorDefense: v.optional(v.number()),
-            perimeterDefense: v.optional(v.number()),
-            steal: v.optional(v.number()),
-            block: v.optional(v.number()),
-            helpDefenseIQ: v.optional(v.number()),
-            passPerception: v.optional(v.number()),
-            defensiveConsistency: v.optional(v.number()),
-          })
-        ),
-        athleticism: v.optional(
-          v.object({
-            speed: v.optional(v.number()),
-            agility: v.optional(v.number()),
-            strength: v.optional(v.number()),
-            vertical: v.optional(v.number()),
-            stamina: v.optional(v.number()),
-            hustle: v.optional(v.number()),
-            overallDurability: v.optional(v.number()),
-          })
-        ),
-        rebounding: v.optional(
-          v.object({
-            offensiveRebound: v.optional(v.number()),
-            defensiveRebound: v.optional(v.number()),
-          })
-        ),
-        special: v.optional(
-          v.object({
-            intangibles: v.optional(v.number()),
-            potential: v.optional(v.number()),
-          })
-        ),
-      })
-    ),
+    // Detailed attributes (flat structure with all possible attributes)
+    attributes: v.optional(v.any()),
 
     // Badges
     badges: v.optional(
       v.object({
-        total: v.number(),
-        hallOfFame: v.number(),
-        gold: v.number(),
-        silver: v.number(),
-        bronze: v.number(),
-        list: v.array(
+        total: v.optional(v.number()),
+        legendary: v.optional(v.number()),
+        hallOfFame: v.optional(v.number()),
+        gold: v.optional(v.number()),
+        silver: v.optional(v.number()),
+        bronze: v.optional(v.number()),
+        list: v.optional(v.array(
           v.object({
             name: v.string(),
             tier: v.string(),
-            category: v.string(),
+            category: v.optional(v.string()),
           })
-        ),
+        )),
       })
     ),
 
