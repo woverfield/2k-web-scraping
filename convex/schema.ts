@@ -107,4 +107,31 @@ export default defineSchema({
     .index("by_apiKeyId", ["apiKeyId"])
     .index("by_timestamp", ["timestamp"])
     .index("by_endpoint", ["endpoint"]),
+
+  /**
+   * Scrape Jobs table - tracks scraping operations
+   */
+  scrapeJobs: defineTable({
+    jobId: v.string(), // Unique job identifier
+    teamType: v.union(v.literal("curr"), v.literal("class"), v.literal("allt")),
+    status: v.union(v.literal("running"), v.literal("completed"), v.literal("failed")),
+
+    // Statistics
+    playersScraped: v.number(), // Total players found
+    playersUpdated: v.number(), // Existing players updated
+    playersAdded: v.number(), // New players added
+    teamsScraped: v.number(), // Number of teams processed
+
+    // Errors and logs
+    errors: v.array(v.string()), // Error messages
+
+    // Timing
+    startTime: v.string(), // ISO timestamp
+    endTime: v.optional(v.string()), // ISO timestamp
+    duration: v.optional(v.number()), // Duration in ms
+  })
+    .index("by_jobId", ["jobId"])
+    .index("by_status", ["status"])
+    .index("by_teamType", ["teamType"])
+    .index("by_startTime", ["startTime"]),
 });

@@ -1,0 +1,180 @@
+/**
+ * Scraper Runner for Convex Integration
+ * Runs the Playwright scraper and uploads results to Convex
+ */
+
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "../convex/_generated/api.js";
+import { scrapeTeamLinks, scrapeTeamRoster } from '../scraper/teamScraper.js';
+import { scrapePlayerDetails } from '../scraper/playerScraper.js';
+import { initBrowser } from '../scraper/utils.js';
+
+const CONVEX_URL = process.env.CONVEX_URL || "https://polished-bee-946.convex.cloud";
+
+/**
+ * Main scraper function
+ */
+async function runScraper(options = {}) {
+  const {
+    teamType = 'curr',
+    teams = null,
+    jobId = `scrape_${teamType}_${Date.now()}`
+  } = options;
+
+  const client = new ConvexHttpClient(CONVEX_URL);
+  const startTime = new Date().toISOString();
+
+  let playersScraped = 0;
+  let playersUpdated = 0;
+  let playersAdded = 0;
+  let teamsScraped = 0;
+  const errors = [];
+
+  console.log(`Starting scrape job ${jobId} for team type: ${teamType}`);
+
+  try {
+    // Initialize browser
+    const browser = await initBrowser();
+    const page = await browser.newPage();
+
+    try {
+      // Scrape team links
+      console.log(`Fetching teams list...`);
+      const allTeams = await scrapeTeamLinks(page, teamType);
+
+      // Filter teams if specified
+      const teamsToScrape = teams
+        ? allTeams.filter(t => teams.includes(t.teamName))
+        : allTeams;
+
+      console.log(`Found ${teamsToScrape.length} teams to scrape`);
+
+      // Scrape each team
+      for (const team of teamsToScrape) {
+        try {
+          console.log(`Scraping team: ${team.teamName}`);
+
+          // Get basic player data from roster
+          const basicPlayers = await scrapeTeamRoster(page, team, teamType);
+          console.log(`  Found ${basicPlayers.length} players`);
+
+          // Scrape detailed data for each player
+          for (const basicPlayer of basicPlayers) {
+            try {
+              const playerDetails = await scrapePlayerDetails(page, basicPlayer);
+
+              // Generate slug from player URL or name
+              let slug = '';
+              if (basicPlayer.playerUrl) {
+                slug = basicPlayer.playerUrl.split('/').pop() || '';
+              }
+              if (!slug && basicPlayer.name) {
+                slug = basicPlayer.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+              }
+
+              // Merge basic and detailed data
+              const fullPlayer = {
+                ...basicPlayer,
+                ...playerDetails,
+                slug,
+                lastUpdated: new Date().toISOString(),
+                createdAt: new Date().toISOString(),
+              };
+
+              // Remove playerMisc (not in schema)
+              delete fullPlayer.playerMisc;
+
+              // Upsert to Convex
+              const result = await client.mutation(api.players.upsertPlayer, fullPlayer);
+
+              if (result.action === 'inserted') {
+                playersAdded++;
+              } else {
+                playersUpdated++;
+              }
+
+              playersScraped++;
+
+            } catch (error) {
+              const errorMsg = `Error scraping player ${basicPlayer.name}: ${error.message}`;
+              console.error(errorMsg);
+              errors.push(errorMsg);
+            }
+          }
+
+          teamsScraped++;
+
+        } catch (error) {
+          const errorMsg = `Error scraping team ${team.teamName}: ${error.message}`;
+          console.error(errorMsg);
+          errors.push(errorMsg);
+        }
+      }
+
+    } finally {
+      await browser.close();
+    }
+
+    // Calculate duration
+    const endTime = new Date().toISOString();
+    const duration = Date.now() - new Date(startTime).getTime();
+
+    console.log(`Scrape job ${jobId} completed successfully`);
+    console.log(`  Players scraped: ${playersScraped}`);
+    console.log(`  Players added: ${playersAdded}`);
+    console.log(`  Players updated: ${playersUpdated}`);
+    console.log(`  Teams scraped: ${teamsScraped}`);
+    console.log(`  Errors: ${errors.length}`);
+
+    return {
+      jobId,
+      success: true,
+      playersScraped,
+      playersUpdated,
+      playersAdded,
+      teamsScraped,
+      errors,
+      duration,
+      startTime,
+      endTime,
+    };
+
+  } catch (error) {
+    const endTime = new Date().toISOString();
+    const duration = Date.now() - new Date(startTime).getTime();
+
+    console.error(`Scrape job ${jobId} failed:`, error);
+
+    return {
+      jobId,
+      success: false,
+      playersScraped,
+      playersUpdated,
+      playersAdded,
+      teamsScraped,
+      errors: [...errors, error.message],
+      duration,
+      startTime,
+      endTime,
+    };
+  }
+}
+
+// CLI support
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const teamType = process.argv[2] || 'curr';
+  const teamsArg = process.argv[3];
+  const teams = teamsArg ? teamsArg.split(',') : null;
+
+  runScraper({ teamType, teams })
+    .then(result => {
+      console.log('\nScraper result:', JSON.stringify(result, null, 2));
+      process.exit(result.success ? 0 : 1);
+    })
+    .catch(error => {
+      console.error('Fatal error:', error);
+      process.exit(1);
+    });
+}
+
+export { runScraper };
