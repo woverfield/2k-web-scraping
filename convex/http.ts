@@ -6,11 +6,13 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { etag } from "hono/etag";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { HonoWithConvex, HttpRouterWithHono } from "convex-helpers/server/hono";
 import { ActionCtx } from "./_generated/server";
 import { api } from "./_generated/api";
+import { Id } from "./_generated/dataModel";
 
 const app: HonoWithConvex<ActionCtx> = new Hono();
 
@@ -20,12 +22,88 @@ const app: HonoWithConvex<ActionCtx> = new Hono();
 
 app.use("*", logger((...args) => console.log(...args)));
 
+// Enable ETag support for caching
+app.use("*", etag());
+
 app.use("/api/*", cors({
   origin: process.env.CLIENT_ORIGIN || "*",
   allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowHeaders: ["Content-Type", "Authorization", "X-API-Key"],
+  allowHeaders: ["Content-Type", "Authorization", "X-API-Key", "If-None-Match"],
   credentials: true,
+  exposeHeaders: ["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset", "ETag", "Cache-Control"],
 }));
+
+// API Key authentication middleware (apply to protected routes)
+async function authMiddleware(c: any, next: any) {
+  const apiKey = c.req.header("X-API-Key");
+
+  if (!apiKey) {
+    return c.json(errorResponse(
+      "API key required",
+      "MISSING_API_KEY",
+      { message: "Please provide an API key in the X-API-Key header" }
+    ), 401);
+  }
+
+  // Validate API key
+  const validation = await c.env.runQuery(api.apiKeys.validateApiKey, { key: apiKey });
+
+  if (!validation.valid) {
+    return c.json(errorResponse(
+      "Invalid or inactive API key",
+      "INVALID_API_KEY",
+      { reason: validation.reason }
+    ), 401);
+  }
+
+  // Check rate limit
+  const startTime = Date.now();
+  const rateLimit = await c.env.runQuery(api.apiKeys.checkRateLimit, { key: apiKey });
+
+  if (!rateLimit.allowed) {
+    c.header("X-RateLimit-Limit", rateLimit.limit?.toString() || "100");
+    c.header("X-RateLimit-Remaining", "0");
+    c.header("X-RateLimit-Reset", rateLimit.reset || "");
+
+    return c.json(errorResponse(
+      "Rate limit exceeded",
+      "RATE_LIMIT_EXCEEDED",
+      {
+        limit: rateLimit.limit,
+        reset: rateLimit.reset,
+        message: `You have exceeded your rate limit. Please try again after ${rateLimit.reset}`
+      }
+    ), 429);
+  }
+
+  // Store for later use in request
+  c.set("apiKeyId", rateLimit.apiKeyId);
+  c.set("rateLimit", rateLimit);
+  c.set("requestStartTime", startTime);
+
+  // Add rate limit headers
+  c.header("X-RateLimit-Limit", rateLimit.limit.toString());
+  c.header("X-RateLimit-Remaining", rateLimit.remaining.toString());
+  c.header("X-RateLimit-Reset", rateLimit.reset);
+
+  await next();
+
+  // Log request after response
+  const responseTime = Date.now() - startTime;
+  const endpoint = c.req.path;
+  const method = c.req.method;
+  const statusCode = c.res.status;
+
+  // Log asynchronously (don't await)
+  c.env.runMutation(api.apiKeys.logRequest, {
+    apiKeyId: rateLimit.apiKeyId as Id<"apiKeys">,
+    endpoint,
+    method,
+    statusCode,
+    responseTime,
+    queryParams: c.req.url.includes("?") ? c.req.url.split("?")[1] : undefined,
+  }).catch((err: any) => console.error("Failed to log request:", err));
+}
 
 // ============================================================================
 // RESPONSE HELPERS
@@ -52,11 +130,203 @@ function errorResponse(message: string, code = "UNKNOWN_ERROR", details?: any) {
 }
 
 // ============================================================================
+// ROUTES: REGISTRATION & DASHBOARD
+// ============================================================================
+
+// POST /api/register - Register for API key (no auth required)
+app.post("/api/register",
+  zValidator("json", z.object({
+    email: z.string().email(),
+    name: z.string().min(1),
+    purpose: z.string().optional(),
+  })),
+  async (c) => {
+    try {
+      const { email, name, purpose } = c.req.valid("json");
+
+      const result = await c.env.runMutation(api.apiKeys.createApiKey, {
+        email,
+        name,
+        purpose,
+      });
+
+      return c.json(successResponse({
+        apiKey: result.apiKey,
+        rateLimit: result.rateLimit,
+        message: "API key created successfully. Keep this key secure!",
+      }), 201);
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      return c.json(errorResponse(
+        "Failed to create API key",
+        "REGISTRATION_ERROR",
+        error.message
+      ), 500);
+    }
+  }
+);
+
+// GET /api/dashboard/usage - Get usage stats (requires auth)
+app.get("/api/dashboard/usage", authMiddleware, async (c) => {
+  try {
+    const apiKey = c.req.header("X-API-Key");
+
+    if (!apiKey) {
+      return c.json(errorResponse(
+        "API key required",
+        "MISSING_API_KEY"
+      ), 401);
+    }
+
+    const stats = await c.env.runQuery(api.apiKeys.getApiKeyStats, {
+      key: apiKey,
+    });
+
+    // Dashboard data is user-specific, should not be cached
+    c.header("Cache-Control", "private, no-cache");
+
+    return c.json(successResponse(stats));
+  } catch (error: any) {
+    console.error("Dashboard error:", error);
+    return c.json(errorResponse(
+      "Failed to fetch usage stats",
+      "DASHBOARD_ERROR",
+      error.message
+    ), 500);
+  }
+});
+
+// ============================================================================
+// ROUTES: ADMIN (Scraping)
+// ============================================================================
+
+// POST /api/admin/scrape - Manually trigger scraping (requires admin key)
+app.post("/api/admin/scrape",
+  zValidator("json", z.object({
+    teamType: z.enum(["curr", "class", "allt"]),
+    teams: z.array(z.string()).optional(),
+    adminKey: z.string(),
+  })),
+  async (c) => {
+    try {
+      const { teamType, teams, adminKey } = c.req.valid("json");
+
+      // Verify admin key
+      if (adminKey !== process.env.ADMIN_API_KEY) {
+        return c.json(errorResponse(
+          "Unauthorized",
+          "INVALID_ADMIN_KEY"
+        ), 401);
+      }
+
+      // Create job ID
+      const jobId = `scrape_${teamType}_${Date.now()}`;
+
+      // Note: Actual scraping must be done externally via scripts/runScraper.js
+      // due to Cloudflare protection on 2kratings.com requiring Playwright browser
+      // This endpoint returns the job ID that the external scraper should use
+
+      return c.json(successResponse({
+        jobId,
+        status: "pending",
+        message: "Scrape job ID created. Run externally: node scripts/runScraper.js " + teamType + (teams ? " " + teams.join(',') : ""),
+        command: `CONVEX_URL=${process.env.CONVEX_DEPLOYMENT_URL} node scripts/runScraper.js ${teamType}${teams ? ' ' + teams.join(',') : ''}`,
+      }), 202);
+
+    } catch (error: any) {
+      console.error("Scrape trigger error:", error);
+      return c.json(errorResponse(
+        "Failed to start scraping job",
+        "SCRAPE_ERROR",
+        error.message
+      ), 500);
+    }
+  }
+);
+
+// GET /api/admin/scrape/jobs - Get recent scrape jobs (requires admin key)
+app.get("/api/admin/scrape/jobs",
+  zValidator("query", z.object({
+    adminKey: z.string(),
+    limit: z.coerce.number().min(1).max(50).default(10),
+  })),
+  async (c) => {
+    try {
+      const { adminKey, limit } = c.req.valid("query");
+
+      // Verify admin key
+      if (adminKey !== process.env.ADMIN_API_KEY) {
+        return c.json(errorResponse(
+          "Unauthorized",
+          "INVALID_ADMIN_KEY"
+        ), 401);
+      }
+
+      const jobs = await c.env.runQuery(api.scrapeJobs.getRecentJobs, { limit });
+
+      return c.json(successResponse(jobs, {
+        count: jobs.length,
+      }));
+
+    } catch (error: any) {
+      console.error("Get jobs error:", error);
+      return c.json(errorResponse(
+        "Failed to fetch scrape jobs",
+        "QUERY_ERROR",
+        error.message
+      ), 500);
+    }
+  }
+);
+
+// GET /api/admin/scrape/:jobId - Get specific scrape job status (requires admin key)
+app.get("/api/admin/scrape/:jobId",
+  zValidator("query", z.object({
+    adminKey: z.string(),
+  })),
+  async (c) => {
+    try {
+      const jobId = c.req.param("jobId");
+      const { adminKey } = c.req.valid("query");
+
+      // Verify admin key
+      if (adminKey !== process.env.ADMIN_API_KEY) {
+        return c.json(errorResponse(
+          "Unauthorized",
+          "INVALID_ADMIN_KEY"
+        ), 401);
+      }
+
+      const job = await c.env.runQuery(api.scrapeJobs.getJobStatus, { jobId });
+
+      if (!job) {
+        return c.json(errorResponse(
+          "Scrape job not found",
+          "NOT_FOUND",
+          { jobId }
+        ), 404);
+      }
+
+      return c.json(successResponse(job));
+
+    } catch (error: any) {
+      console.error("Get job status error:", error);
+      return c.json(errorResponse(
+        "Failed to fetch job status",
+        "QUERY_ERROR",
+        error.message
+      ), 500);
+    }
+  }
+);
+
+// ============================================================================
 // ROUTES: PLAYERS
 // ============================================================================
 
 // GET /api/players - List players with filtering and pagination
 app.get("/api/players",
+  authMiddleware,
   zValidator("query", z.object({
     teamType: z.enum(["curr", "class", "allt"]).optional(),
     team: z.string().optional(),
@@ -96,6 +366,9 @@ app.get("/api/players",
         );
       }
 
+      // Add caching headers - player data cached for 1 hour
+      c.header("Cache-Control", "public, max-age=3600");
+
       return c.json(successResponse(filteredPage, {
         pagination: {
           hasMore: !result.isDone,
@@ -118,6 +391,7 @@ app.get("/api/players",
 // GET /api/players/search - Search players by name
 // NOTE: This route MUST come before /api/players/:id to avoid matching "search" as an ID
 app.get("/api/players/search",
+  authMiddleware,
   zValidator("query", z.object({
     q: z.string().min(1, "Search query is required"),
     teamType: z.enum(["curr", "class", "allt"]).optional(),
@@ -133,6 +407,9 @@ app.get("/api/players/search",
       });
 
       const limitedResults = results.slice(0, limit);
+
+      // Add caching headers - search results cached for 5 minutes
+      c.header("Cache-Control", "public, max-age=300");
 
       return c.json(successResponse(limitedResults, {
         count: limitedResults.length,
@@ -151,7 +428,7 @@ app.get("/api/players/search",
 );
 
 // GET /api/players/:id - Get player by ID
-app.get("/api/players/:id", async (c) => {
+app.get("/api/players/:id", authMiddleware, async (c) => {
   try {
     const playerId = c.req.param("id");
 
@@ -174,6 +451,9 @@ app.get("/api/players/:id", async (c) => {
       ), 404);
     }
 
+    // Add caching headers - individual player data cached for 1 hour
+    c.header("Cache-Control", "public, max-age=3600");
+
     return c.json(successResponse(player));
   } catch (error: any) {
     console.error("Error fetching player:", error);
@@ -191,6 +471,7 @@ app.get("/api/players/:id", async (c) => {
 
 // GET /api/teams - List all teams
 app.get("/api/teams",
+  authMiddleware,
   zValidator("query", z.object({
     teamType: z.enum(["curr", "class", "allt"]).optional(),
   })),
@@ -201,6 +482,9 @@ app.get("/api/teams",
       const teams = await c.env.runQuery(api.players.getTeams, {
         teamType,
       });
+
+      // Add caching headers - teams list cached for 1 hour
+      c.header("Cache-Control", "public, max-age=3600");
 
       return c.json(successResponse(teams, {
         count: teams.length,
@@ -218,6 +502,7 @@ app.get("/api/teams",
 
 // GET /api/teams/:teamName/roster - Get team roster
 app.get("/api/teams/:teamName/roster",
+  authMiddleware,
   zValidator("query", z.object({
     teamType: z.enum(["curr", "class", "allt"]).optional(),
   })),
@@ -239,6 +524,9 @@ app.get("/api/teams/:teamName/roster",
         ), 404);
       }
 
+      // Add caching headers - team rosters cached for 1 hour
+      c.header("Cache-Control", "public, max-age=3600");
+
       return c.json(successResponse(roster, {
         team: teamName,
         teamType: teamType || "all",
@@ -259,10 +547,14 @@ app.get("/api/teams/:teamName/roster",
 // ROUTES: STATISTICS
 // ============================================================================
 
-// GET /api/stats - Get database statistics
+// GET /api/stats - Get database statistics (public, no auth required)
 app.get("/api/stats", async (c) => {
   try {
     const stats = await c.env.runQuery(api.players.getStats);
+
+    // Add caching headers - stats cached for 30 minutes
+    c.header("Cache-Control", "public, max-age=1800");
+
     return c.json(successResponse(stats));
   } catch (error: any) {
     console.error("Error fetching stats:", error);
