@@ -8,6 +8,7 @@
     "dev:convex": "npx convex dev",
     "dev:next": "next dev",
     "dev": "npm-run-all --parallel dev:*",
+    "prebuild": "npx convex codegen",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
