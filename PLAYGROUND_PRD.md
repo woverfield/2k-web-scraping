@@ -54,21 +54,50 @@ Create a platform that evokes:
 
 ## 3. Design System
 
-### Color Scheme (2K Rating System)
+### Color Scheme (NBA 2K Card Tier System)
+
+**Overall Rating Colors** (MyTeam Card Rarities):
 ```css
-.highest { color: #0a0; }  /* 90-99 - Elite */
-.high    { color: #070; }  /* 80-89 - Very Good */
-.medium  { color: #c90; }  /* 70-79 - Average */
-.low     { color: #d40; }  /* 60-69 - Below Average */
-.lowest  { color: #900; }  /* 0-59 - Poor */
+.dark-matter    { gradient: #000→#400000→#562683; }  /* 99 - Dark Matter */
+.galaxy-opal    { gradient: #188fff→#e1a6e7→#f9a205; glow: gold; }  /* 97-98 - Galaxy Opal */
+.pink-diamond   { gradient: #ff96df→#ad388a; glow: pink; }  /* 95-96 - Pink Diamond */
+.diamond        { gradient: #00aace→#005668; }  /* 92-94 - Diamond */
+.amethyst       { gradient: #a51fff→#5b1c86; }  /* 90-91 - Amethyst */
+.ruby           { gradient: #e70000→#810000; }  /* 87-89 - Ruby */
+.sapphire       { gradient: #0020ce→#001068; }  /* 84-86 - Sapphire */
+.emerald        { gradient: #05c715→#03630b; }  /* 80-83 - Emerald */
+.gold           { gradient: #d6bb5c→#a38829; }  /* 75-79 - Gold */
+.silver         { gradient: #a2a2a2→#6f6f6f; }  /* 70-74 - Silver */
+.bronze         { color: #c90; }  /* <70 - Bronze */
 ```
 
-### Rating Thresholds
+**Attribute Colors** (Green-Red Scale - Unchanged):
 - **Highest**: 90-99 (Elite) - `#0a0`
 - **High**: 80-89 (Very Good) - `#070`
 - **Medium**: 70-79 (Average) - `#c90`
 - **Low**: 60-69 (Below Average) - `#d40`
 - **Lowest**: 0-59 (Poor) - `#900`
+
+### Rating Thresholds
+**Overall Ratings** (Card Tier System):
+- **Dark Matter**: 99 - Black→Purple gradient with blue overlay
+- **Galaxy Opal**: 97-98 - Blue→Pink→Orange gradient with gold glow
+- **Pink Diamond**: 95-96 - Pink gradient with pink glow
+- **Diamond**: 92-94 - Cyan gradient
+- **Amethyst**: 90-91 - Purple gradient
+- **Ruby**: 87-89 - Red gradient
+- **Sapphire**: 84-86 - Blue gradient
+- **Emerald**: 80-83 - Green gradient
+- **Gold**: 75-79 - Gold gradient
+- **Silver**: 70-74 - Silver gradient
+- **Bronze**: <70 - Orange solid
+
+**Individual Attributes** (Keep original scale):
+- 90-99: Elite (bright green)
+- 80-89: Very Good (green)
+- 70-79: Average (orange)
+- 60-69: Below Average (dark orange)
+- 0-59: Poor (dark red)
 
 ### UX/Animation Principles
 
