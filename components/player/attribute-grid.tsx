@@ -15,23 +15,35 @@ export interface AttributeGridProps {
 }
 
 /**
- * Groups attributes by category for better organization
+ * Groups attributes by category for better organization (matches radar chart categories)
  */
 function groupAttributesByCategory(attributes: PlayerAttributes) {
   const categories: Record<string, Array<{ name: string; value: number }>> = {
-    Shooting: [],
-    Playmaking: [],
-    Defense: [],
-    Athleticism: [],
-    Other: [],
+    "Outside Scoring": [],
+    "Inside Scoring": [],
+    "Playmaking": [],
+    "Athleticism": [],
+    "Defending": [],
+    "Rebounding": [],
+    "Other": [],
+  };
+
+  // Category name mapping from camelCase to display names
+  const categoryMap: Record<string, string> = {
+    outsideScoring: "Outside Scoring",
+    insideScoring: "Inside Scoring",
+    playmaking: "Playmaking",
+    athleticism: "Athleticism",
+    defending: "Defending",
+    rebounding: "Rebounding",
+    other: "Other",
   };
 
   // Map all attributes to their categories
   Object.entries(attributes).forEach(([key, value]) => {
     if (typeof value === "number") {
       const rawCategory = getAttributeCategory(key);
-      // Capitalize first letter to match our categories object
-      const category = rawCategory.charAt(0).toUpperCase() + rawCategory.slice(1);
+      const category = categoryMap[rawCategory] || "Other";
 
       if (categories[category]) {
         categories[category].push({

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { getRatingColor } from "@/lib/rating-colors";
+import { getAttributeColor } from "@/lib/rating-colors";
 import { progressFill } from "@/lib/animations";
 
 export interface AttributeBarProps {
@@ -24,7 +24,7 @@ export function AttributeBar({
   className,
 }: AttributeBarProps) {
   const percentage = Math.min((value / maxValue) * 100, 100);
-  const color = getRatingColor(value);
+  const color = getAttributeColor(value);
 
   return (
     <div className={cn("space-y-1", className)}>

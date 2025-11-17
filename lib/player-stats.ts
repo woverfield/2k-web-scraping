@@ -112,26 +112,29 @@ export function formatAttributeName(name: string): string {
 }
 
 /**
- * Get attribute category for grouping
+ * Get attribute category for grouping (matches radar chart categories)
  * @param attributeName - Attribute name in camelCase
  * @returns Category name
  */
 export function getAttributeCategory(
   attributeName: string
-): "shooting" | "playmaking" | "defense" | "athleticism" | "other" {
-  const shooting = [
+): "outsideScoring" | "insideScoring" | "playmaking" | "athleticism" | "defending" | "rebounding" | "other" {
+  const outsideScoring = [
     "closeShot",
-    "drivingLayup",
-    "drivingDunk",
-    "standingDunk",
-    "postHook",
-    "postFade",
-    "postControl",
     "midRangeShot",
     "threePointShot",
     "freeThrow",
     "shotIQ",
     "offensiveConsistency",
+  ];
+
+  const insideScoring = [
+    "drivingLayup",
+    "standingDunk",
+    "drivingDunk",
+    "postHook",
+    "postFade",
+    "postControl",
     "drawFoul",
     "hands",
   ];
@@ -146,29 +149,38 @@ export function getAttributeCategory(
     "postMoves",
   ];
 
-  const defense = [
-    "interiorDefense",
-    "perimeterDefense",
-    "steal",
-    "block",
-    "defensiveConsistency",
-    "defensiveRebound",
-    "lateralQuickness",
-    "helpDefenseIQ",
-  ];
-
   const athleticism = [
     "speed",
     "acceleration",
+    "agility",
     "vertical",
     "strength",
     "stamina",
     "hustle",
+    "durability",
   ];
 
-  if (shooting.includes(attributeName)) return "shooting";
+  const defending = [
+    "interiorDefense",
+    "perimeterDefense",
+    "steal",
+    "block",
+    "helpDefenseIQ",
+    "passPerception",
+    "defensiveConsistency",
+    "lateralQuickness",
+  ];
+
+  const rebounding = [
+    "offensiveRebound",
+    "defensiveRebound",
+  ];
+
+  if (outsideScoring.includes(attributeName)) return "outsideScoring";
+  if (insideScoring.includes(attributeName)) return "insideScoring";
   if (playmaking.includes(attributeName)) return "playmaking";
-  if (defense.includes(attributeName)) return "defense";
   if (athleticism.includes(attributeName)) return "athleticism";
+  if (defending.includes(attributeName)) return "defending";
+  if (rebounding.includes(attributeName)) return "rebounding";
   return "other";
 }

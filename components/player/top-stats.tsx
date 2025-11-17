@@ -4,7 +4,7 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { staggerItem } from "@/lib/animations";
-import { getRatingColor } from "@/lib/rating-colors";
+import { getAttributeColor } from "@/lib/rating-colors";
 import { getTopThreeStats } from "@/lib/player-stats";
 import type { Player } from "@/types/player";
 
@@ -32,7 +32,7 @@ export function TopStats({ player, rankings, className }: TopStatsProps) {
       </h3>
       <div className="flex flex-col gap-2">
         {topStats.map((stat, index) => {
-          const color = getRatingColor(stat.value);
+          const color = getAttributeColor(stat.value);
           const ranking = rankings?.find((r) => r.attribute === stat.name);
 
           return (
