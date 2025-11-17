@@ -43,11 +43,13 @@ export function AttributeBar({
       <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-muted">
         {animated ? (
           <motion.div
-            className="h-full rounded-full"
-            style={{ backgroundColor: color }}
-            variants={progressFill}
-            initial="initial"
-            animate="animate"
+            className="h-full rounded-full origin-left"
+            style={{
+              width: `${percentage}%`,
+              backgroundColor: color,
+            }}
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
             transition={{
               duration: 0.6,
               delay,
