@@ -29,6 +29,8 @@ build/
 # Convex
 .convex/
 convex/_generated/
+convex/*.d.ts
+convex/*.d.ts.map
 PRD.md
 
 # Next.js
