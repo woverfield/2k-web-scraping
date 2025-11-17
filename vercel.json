@@ -1,0 +1,11 @@
+{
+  "buildCommand": "npm install && npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "rootDirectory": "frontend",
+  "regions": ["iad1"],
+  "env": {
+    "NEXT_PUBLIC_CONVEX_URL": "@convex_url"
+  }
+}

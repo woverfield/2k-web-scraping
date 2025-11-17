@@ -1,11 +1,6 @@
 # Node modules
 node_modules/
 
-# Output files
-*.json
-!package.json
-!package-lock.json
-!tsconfig.json
 
 # Environment variables
 .env
