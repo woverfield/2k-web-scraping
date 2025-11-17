@@ -15,31 +15,31 @@ export interface BadgesGridProps {
 }
 
 /**
- * Badge tier colors following 2K style
+ * Badge tier colors following NBA 2K MyTeam style (matching Blacktop Blitz)
  */
 const TIER_COLORS = {
   HOF: {
-    bg: "bg-purple-600/10",
-    text: "text-purple-600",
-    border: "border-purple-600/30",
+    bg: "badge-amethyst",
+    text: "text-white",
+    border: "border-purple-600",
     label: "Hall of Fame",
   },
   Gold: {
-    bg: "bg-yellow-500/10",
-    text: "text-yellow-600",
-    border: "border-yellow-500/30",
+    bg: "badge-gold",
+    text: "text-white",
+    border: "border-yellow-600",
     label: "Gold",
   },
   Silver: {
-    bg: "bg-slate-400/10",
-    text: "text-slate-400",
-    border: "border-slate-400/30",
+    bg: "badge-silver",
+    text: "text-white",
+    border: "border-slate-500",
     label: "Silver",
   },
   Bronze: {
-    bg: "bg-orange-700/10",
-    text: "text-orange-700",
-    border: "border-orange-700/30",
+    bg: "bg-[#c90]",
+    text: "text-white",
+    border: "border-[#c90]",
     label: "Bronze",
   },
 } as const;
@@ -47,16 +47,32 @@ const TIER_COLORS = {
 type BadgeTier = keyof typeof TIER_COLORS;
 
 /**
- * Group badges by tier and category
+ * Group badges by category (prevents duplication by only using badges.list)
  */
 function organizeBadges(badges: PlayerBadges) {
   const organized: Record<string, Array<{ name: string; tier: string }>> = {};
+  const seenBadges = new Set<string>(); // Track unique badge names to prevent duplicates
 
-  Object.entries(badges).forEach(([category, badgesList]) => {
-    if (Array.isArray(badgesList) && badgesList.length > 0) {
-      organized[category] = badgesList;
-    }
-  });
+  // Only use the list property to prevent duplication
+  if (badges.list && Array.isArray(badges.list)) {
+    badges.list.forEach((badge) => {
+      // Skip if we've already seen this exact badge name (case-insensitive)
+      const badgeKey = badge.name.toLowerCase().trim();
+      if (seenBadges.has(badgeKey)) {
+        return; // Skip duplicate
+      }
+      seenBadges.add(badgeKey);
+
+      const category = badge.category || "Uncategorized";
+      if (!organized[category]) {
+        organized[category] = [];
+      }
+      organized[category].push({
+        name: badge.name,
+        tier: badge.tier,
+      });
+    });
+  }
 
   return organized;
 }
@@ -167,7 +183,11 @@ export function BadgesGrid({ player, className }: BadgesGridProps) {
                   onClick={() => setSelectedTier(tier)}
                   className={cn(
                     "font-semibold transition-all border-2",
-                    isSelected ? cn(colors.bg, colors.text, colors.border, "border-current") : "opacity-60 hover:opacity-100"
+                    isSelected
+                      ? tier === "Bronze"
+                        ? "!bg-[#c90] !text-white !border-[#c90]"
+                        : cn(colors.bg, colors.text, colors.border, "border-current")
+                      : "opacity-60 hover:opacity-100"
                   )}
                 >
                   {colors.label}

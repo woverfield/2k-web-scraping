@@ -120,3 +120,61 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* NBA 2K Card Tier Gradients (Based on MyTeam Card Rarities) */
+@layer components {
+  .overall-dark-matter {
+    background: linear-gradient(rgba(75, 168, 255, 0.1), rgba(0, 0, 0, 0.7)),
+      linear-gradient(to bottom left, #000, #400000, #562683);
+  }
+
+  .overall-galaxy-opal {
+    background: linear-gradient(rgba(75, 168, 255, 0.1), rgba(0, 0, 0, 0.7)),
+      linear-gradient(to bottom left, #188fff, #e1a6e7, #f9a205);
+  }
+
+  .overall-pink-diamond {
+    background: linear-gradient(#ff96df, #ad388a);
+  }
+
+  .overall-diamond {
+    background: linear-gradient(#00aace, #005668);
+  }
+
+  .overall-amethyst {
+    background: linear-gradient(#a51fff, #5b1c86);
+  }
+
+  .overall-ruby {
+    background: linear-gradient(#e70000, #810000);
+  }
+
+  .overall-sapphire {
+    background: linear-gradient(#0020ce, #001068);
+  }
+
+  .overall-emerald {
+    background: linear-gradient(#05c715, #03630b);
+  }
+
+  .overall-gold {
+    background: linear-gradient(#d6bb5c, #a38829);
+  }
+
+  .overall-silver {
+    background: linear-gradient(#a2a2a2, #6f6f6f);
+  }
+
+  /* Badge Tier Gradients (matching Blacktop Blitz) */
+  .badge-amethyst {
+    background: linear-gradient(#a51fff, #5b1c86);
+  }
+
+  .badge-gold {
+    background: linear-gradient(#d6bb5c, #a38829);
+  }
+
+  .badge-silver {
+    background: linear-gradient(#a2a2a2, #6f6f6f);
+  }
+}

@@ -29,10 +29,11 @@ export function RatingBadge({
     <Badge
       variant="outline"
       className={cn(
-        "border transition-colors duration-150",
+        "border transition-colors duration-150 rounded-sm px-2 py-0.5",
         colors.bg,
         colors.text,
         colors.border,
+        colors.shadow,
         sizeClasses[size],
         className
       )}
