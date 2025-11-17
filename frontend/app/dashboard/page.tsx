@@ -76,22 +76,22 @@ export default function DashboardPage() {
     setApiKey(newKey);
   };
 
-  const getStatusColor = (statusCode: number) => {
-    if (statusCode >= 200 && statusCode < 300) return "success";
-    if (statusCode >= 400 && statusCode < 500) return "warning";
+  const getStatusColor = (statusCode: number): "default" | "secondary" | "destructive" | "outline" => {
+    if (statusCode >= 200 && statusCode < 300) return "default";
+    if (statusCode >= 400 && statusCode < 500) return "outline";
     if (statusCode >= 500) return "destructive";
     return "secondary";
   };
 
-  const getMethodColor = (method: string) => {
+  const getMethodColor = (method: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (method.toUpperCase()) {
       case "GET":
         return "default";
       case "POST":
-        return "success";
+        return "secondary";
       case "PUT":
       case "PATCH":
-        return "warning";
+        return "outline";
       case "DELETE":
         return "destructive";
       default:
@@ -195,6 +195,11 @@ export default function DashboardPage() {
         </Alert>
       </div>
     );
+  }
+
+  // TypeScript guard: stats is guaranteed to be defined here
+  if (!stats) {
+    return null;
   }
 
   const progressPercentage = Math.min(

@@ -34,7 +34,7 @@ export default function QuickstartPage() {
           <LanguageTabs
             examples={{
               javascript: `const response = await fetch(
-  'https://polished-bee-946.convex.site/api/players/lebron-james',
+  'https://canny-kingfisher-472.convex.site/api/players/lebron-james',
   {
     headers: {
       'X-API-Key': 'your_api_key_here'
@@ -53,7 +53,7 @@ if (data.success) {
               python: `import requests
 
 response = requests.get(
-    'https://polished-bee-946.convex.site/api/players/lebron-james',
+    'https://canny-kingfisher-472.convex.site/api/players/lebron-james',
     headers={'X-API-Key': 'your_api_key_here'}
 )
 
@@ -65,7 +65,7 @@ if data['success']:
     print(data['data']['position'])       # "SF"
     print(data['data']['team'])           # "Los Angeles Lakers"`,
               curl: `curl -X GET \\
-  'https://polished-bee-946.convex.site/api/players/lebron-james' \\
+  'https://canny-kingfisher-472.convex.site/api/players/lebron-james' \\
   -H 'X-API-Key: your_api_key_here'`,
             }}
           />

@@ -59,7 +59,7 @@ export default function TeamsEndpointPage() {
           <LanguageTabs
             examples={{
               javascript: `const response = await fetch(
-  'https://polished-bee-946.convex.site/api/teams?teamType=curr',
+  'https://canny-kingfisher-472.convex.site/api/teams?teamType=curr',
   {
     headers: {
       'X-API-Key': 'your_api_key_here'
@@ -72,7 +72,7 @@ console.log(data.data); // Array of all current NBA teams`,
               python: `import requests
 
 response = requests.get(
-    'https://polished-bee-946.convex.site/api/teams',
+    'https://canny-kingfisher-472.convex.site/api/teams',
     params={'teamType': 'curr'},
     headers={'X-API-Key': 'your_api_key_here'}
 )
@@ -80,7 +80,7 @@ response = requests.get(
 data = response.json()
 print(data['data'])  # Array of all current NBA teams`,
               curl: `curl -X GET \\
-  'https://polished-bee-946.convex.site/api/teams?teamType=curr' \\
+  'https://canny-kingfisher-472.convex.site/api/teams?teamType=curr' \\
   -H 'X-API-Key: your_api_key_here'`,
             }}
           />
@@ -119,7 +119,7 @@ print(data['data'])  # Array of all current NBA teams`,
           <LanguageTabs
             examples={{
               javascript: `const response = await fetch(
-  'https://polished-bee-946.convex.site/api/teams/Los%20Angeles%20Lakers/roster?teamType=curr',
+  'https://canny-kingfisher-472.convex.site/api/teams/Los%20Angeles%20Lakers/roster?teamType=curr',
   {
     headers: {
       'X-API-Key': 'your_api_key_here'
@@ -132,7 +132,7 @@ console.log(data.data); // Array of Lakers players`,
               python: `import requests
 
 response = requests.get(
-    'https://polished-bee-946.convex.site/api/teams/Los Angeles Lakers/roster',
+    'https://canny-kingfisher-472.convex.site/api/teams/Los Angeles Lakers/roster',
     params={'teamType': 'curr'},
     headers={'X-API-Key': 'your_api_key_here'}
 )
@@ -140,7 +140,7 @@ response = requests.get(
 data = response.json()
 print(data['data'])  # Array of Lakers players`,
               curl: `curl -X GET \\
-  'https://polished-bee-946.convex.site/api/teams/Los%20Angeles%20Lakers/roster?teamType=curr' \\
+  'https://canny-kingfisher-472.convex.site/api/teams/Los%20Angeles%20Lakers/roster?teamType=curr' \\
   -H 'X-API-Key: your_api_key_here'`,
             }}
           />

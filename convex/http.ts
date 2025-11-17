@@ -341,9 +341,10 @@ app.get("/api/players",
       const params = c.req.valid("query");
 
       const result = await c.env.runQuery(api.players.getAllPlayers, {
-        paginationOpts: params.cursor
-          ? { numItems: params.limit, cursor: params.cursor }
-          : { numItems: params.limit },
+        paginationOpts: {
+          numItems: params.limit,
+          cursor: params.cursor || null,
+        },
       });
 
       let filteredPage = result.page;
@@ -464,6 +465,45 @@ app.get("/api/players/:id", authMiddleware, async (c) => {
     ), 500);
   }
 });
+
+// GET /api/players/slug/:slug - Get player by slug (more user-friendly)
+app.get("/api/players/slug/:slug",
+  authMiddleware,
+  zValidator("query", z.object({
+    teamType: z.enum(["curr", "class", "allt"]).optional(),
+  })),
+  async (c) => {
+    try {
+      const slug = c.req.param("slug");
+      const { teamType } = c.req.valid("query");
+
+      const player = await c.env.runQuery(api.players.getPlayerBySlug, {
+        slug,
+        teamType,
+      });
+
+      if (!player) {
+        return c.json(errorResponse(
+          "Player not found",
+          "NOT_FOUND",
+          { slug, teamType }
+        ), 404);
+      }
+
+      // Add caching headers - individual player data cached for 1 hour
+      c.header("Cache-Control", "public, max-age=3600");
+
+      return c.json(successResponse(player));
+    } catch (error: any) {
+      console.error("Error fetching player by slug:", error);
+      return c.json(errorResponse(
+        "Failed to fetch player",
+        "QUERY_ERROR",
+        error.message
+      ), 500);
+    }
+  }
+);
 
 // ============================================================================
 // ROUTES: TEAMS

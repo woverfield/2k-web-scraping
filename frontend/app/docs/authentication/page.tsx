@@ -34,7 +34,7 @@ export default function AuthenticationPage() {
           <LanguageTabs
             examples={{
               javascript: `const response = await fetch(
-  'https://polished-bee-946.convex.site/api/players',
+  'https://canny-kingfisher-472.convex.site/api/players',
   {
     headers: {
       'X-API-Key': 'your_api_key_here'
@@ -44,11 +44,11 @@ export default function AuthenticationPage() {
               python: `import requests
 
 response = requests.get(
-    'https://polished-bee-946.convex.site/api/players',
+    'https://canny-kingfisher-472.convex.site/api/players',
     headers={'X-API-Key': 'your_api_key_here'}
 )`,
               curl: `curl -X GET \\
-  'https://polished-bee-946.convex.site/api/players' \\
+  'https://canny-kingfisher-472.convex.site/api/players' \\
   -H 'X-API-Key: your_api_key_here'`,
             }}
           />

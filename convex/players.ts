@@ -36,6 +36,36 @@ export const insertPlayer = mutation({
 });
 
 /**
+ * Helper function to upsert a player
+ */
+async function upsertPlayerHelper(ctx: any, args: any) {
+  // Check if player exists by slug and team type
+  const existing = await ctx.db
+    .query("players")
+    .withIndex("by_slug", (q: any) => q.eq("slug", args.slug))
+    .filter((q: any) => q.eq(q.field("teamType"), args.teamType))
+    .filter((q: any) => q.eq(q.field("team"), args.team))
+    .first();
+
+  if (existing) {
+    // Update existing player
+    await ctx.db.patch(existing._id, {
+      ...args,
+      lastUpdated: new Date().toISOString(),
+    });
+    return { _id: existing._id, action: "updated" };
+  } else {
+    // Insert new player
+    const playerId = await ctx.db.insert("players", {
+      ...args,
+      createdAt: args.createdAt || new Date().toISOString(),
+      lastUpdated: new Date().toISOString(),
+    });
+    return { _id: playerId, action: "inserted" };
+  }
+}
+
+/**
  * Upsert a player - update if exists (by slug), insert if new
  */
 export const upsertPlayer = mutation({
@@ -59,30 +89,7 @@ export const upsertPlayer = mutation({
     createdAt: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Check if player exists by slug and team type
-    const existing = await ctx.db
-      .query("players")
-      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-      .filter((q) => q.eq(q.field("teamType"), args.teamType))
-      .filter((q) => q.eq(q.field("team"), args.team))
-      .first();
-
-    if (existing) {
-      // Update existing player
-      await ctx.db.patch(existing._id, {
-        ...args,
-        lastUpdated: new Date().toISOString(),
-      });
-      return { _id: existing._id, action: "updated" };
-    } else {
-      // Insert new player
-      const playerId = await ctx.db.insert("players", {
-        ...args,
-        createdAt: args.createdAt || new Date().toISOString(),
-        lastUpdated: new Date().toISOString(),
-      });
-      return { _id: playerId, action: "inserted" };
-    }
+    return await upsertPlayerHelper(ctx, args);
   },
 });
 
@@ -102,7 +109,7 @@ export const bulkUpsertPlayers = mutation({
 
     for (const player of args.players) {
       try {
-        const result = await upsertPlayer(ctx, player);
+        const result = await upsertPlayerHelper(ctx, player);
         if (result.action === "inserted") {
           results.inserted++;
         } else {
@@ -167,13 +174,13 @@ export const updatePlayerPositions = mutation({
  */
 export const getAllPlayers = query({
   args: {
-    paginationOpts: v.optional(v.object({ numItems: v.number(), cursor: v.optional(v.string()) })),
+    paginationOpts: v.optional(v.object({ numItems: v.number(), cursor: v.union(v.string(), v.null()) })),
   },
   handler: async (ctx, args) => {
     const results = await ctx.db
       .query("players")
       .order("desc")
-      .paginate(args.paginationOpts || { numItems: 50 });
+      .paginate(args.paginationOpts || { numItems: 50, cursor: null });
 
     return results;
   },
@@ -194,13 +201,24 @@ export const getPlayerById = query({
  * Get player by slug
  */
 export const getPlayerBySlug = query({
-  args: { slug: v.string() },
+  args: {
+    slug: v.string(),
+    teamType: v.optional(v.union(v.literal("curr"), v.literal("class"), v.literal("allt"))),
+  },
   handler: async (ctx, args) => {
-    const player = await ctx.db
+    let query = ctx.db
       .query("players")
-      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-      .first();
-    return player;
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug));
+
+    let players = await query.collect();
+
+    // Filter by team type if specified
+    if (args.teamType) {
+      players = players.filter((p) => p.teamType === args.teamType);
+    }
+
+    // Return first match
+    return players.length > 0 ? players[0] : null;
   },
 });
 

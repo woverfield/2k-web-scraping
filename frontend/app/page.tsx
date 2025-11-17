@@ -3,17 +3,25 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LanguageTabs } from "@/components/language-tabs";
 import { RegistrationDialog } from "@/components/registration-dialog";
+import { PlayerSearchDemo } from "@/components/player-search-demo";
+import { Skeleton } from "@/components/ui/skeleton";
 import { API_KEY_STORAGE_KEY } from "@/lib/constants";
+import { Users, Database, TrendingUp } from "lucide-react";
 
 export default function Home() {
   const [showRegistration, setShowRegistration] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
   const router = useRouter();
+
+  // Fetch live stats
+  const stats = useQuery(api.players.getStats);
 
   useEffect(() => {
     // Check if user already has an API key
@@ -127,6 +135,21 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Live Search Demo */}
+      <section className="border-t bg-white dark:bg-slate-900">
+        <div className="container mx-auto px-4 py-16">
+          <div className="mb-8 text-center">
+            <h2 className="mb-4 text-3xl font-bold">Try it Live</h2>
+            <p className="text-slate-600 dark:text-slate-400">
+              Search our database of NBA 2K players in real-time
+            </p>
+          </div>
+          <div className="mx-auto flex max-w-2xl justify-center">
+            <PlayerSearchDemo />
+          </div>
+        </div>
+      </section>
+
       {/* Code Examples Section */}
       <section className="border-t bg-slate-50 dark:bg-slate-950">
         <div className="container mx-auto px-4 py-16">
@@ -141,7 +164,7 @@ export default function Home() {
             <LanguageTabs
               examples={{
                 javascript: `const response = await fetch(
-  'https://polished-bee-946.convex.site/api/players/lebron-james',
+  'https://canny-kingfisher-472.convex.site/api/players/slug/bronny-james',
   {
     headers: {
       'X-API-Key': 'your_api_key_here'
@@ -150,28 +173,28 @@ export default function Home() {
 );
 
 const data = await response.json();
-console.log(data.data.name); // "LeBron James"
-console.log(data.data.overallRating); // 97`,
+console.log(data.data.name); // "Bronny James Jr."
+console.log(data.data.overall); // 68`,
                 python: `import requests
 
 response = requests.get(
-    'https://polished-bee-946.convex.site/api/players/lebron-james',
+    'https://canny-kingfisher-472.convex.site/api/players/slug/bronny-james',
     headers={'X-API-Key': 'your_api_key_here'}
 )
 
 data = response.json()
-print(data['data']['name'])  # "LeBron James"
-print(data['data']['overallRating'])  # 97`,
-                curl: `curl -X GET \\
-  'https://polished-bee-946.convex.site/api/players/lebron-james' \\
+print(data['data']['name'])  # "Bronny James Jr."
+print(data['data']['overall'])  # 68`,
+                curl: `curl 'https://canny-kingfisher-472.convex.site/api/players/slug/bronny-james' \\
   -H 'X-API-Key: your_api_key_here'
 
 # Response:
 # {
 #   "success": true,
 #   "data": {
-#     "name": "LeBron James",
-#     "overallRating": 97,
+#     "name": "Bronny James Jr.",
+#     "overall": 68,
+#     "team": "Los Angeles Lakers",
 #     ...
 #   }
 # }`,

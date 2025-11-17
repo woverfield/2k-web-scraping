@@ -1,77 +1,319 @@
-# nba2k-api
+# NBA 2K Ratings API
 
-Enhanced web scraper for NBA 2K player ratings from [2kratings.com](https://www.2kratings.com/).
+A complete REST API and web application for accessing NBA 2K player ratings and team rosters. Includes automated web scraping, a serverless backend, and a modern Next.js frontend.
 
-This project scrapes comprehensive NBA 2K player data including ratings, attributes, badges, and team information. The scraped data will be used to build a public REST API for the basketball gaming community.
+## Overview
+
+This project provides:
+- **REST API**: Access NBA 2K player data with authentication and rate limiting
+- **Web Dashboard**: Manage API keys and monitor usage
+- **Live Search**: Interactive player search with real-time results
+- **Automated Scraper**: Playwright-based scraper for 2kratings.com
+- **Serverless Backend**: Built on Convex for real-time data and HTTP actions
 
 ## Features
 
+### API Features
+- Comprehensive player data (40+ attributes, badges, physical stats)
+- Team roster queries (current, classic, all-time)
+- Player search by name
+- Position and rating filters
+- API key authentication
+- Rate limiting (100 requests/hour per key)
+- ETag support for caching
+- Response time tracking
+
+### Scraper Features
 - Scrapes all team types: Current, Classic, and All-Time teams
 - Extracts detailed player attributes (30+ data points)
-- Badge system with tier levels
+- Badge system with tier levels (Hall of Fame, Gold, Silver, Bronze)
 - Configurable scraping modes (basic or detailed)
 - Progress tracking and statistics
-- Clean JSON output
+- Automatic data upload to Convex
 
-## Requirements
+### Frontend Features
+- API key management dashboard
+- Live usage statistics
+- Recent request logs
+- Interactive player search demo
+- Dark mode support
+- Responsive design
 
-- [Node.js](https://nodejs.org/) (v18+ recommended)
-- [Playwright](https://playwright.dev/)
+## Tech Stack
 
-## Installation
+- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS, shadcn/ui
+- **Backend**: Convex (serverless platform)
+- **Scraper**: Playwright, Node.js
+- **Deployment**: Vercel (frontend), Convex Cloud (backend)
 
-1. Install dependencies:
+## Quick Start
+
+### 1. API Usage
+
+Get your free API key at [https://canny-kingfisher-472.convex.site](https://canny-kingfisher-472.convex.site)
+
 ```bash
-cd scraper
+# Search for players
+curl 'https://canny-kingfisher-472.convex.site/api/players?search=james' \
+  -H 'X-API-Key: your_api_key_here'
+
+# Get player by slug (user-friendly)
+curl 'https://canny-kingfisher-472.convex.site/api/players/slug/bronny-james' \
+  -H 'X-API-Key: your_api_key_here'
+
+# Get team roster
+curl 'https://canny-kingfisher-472.convex.site/api/teams/Los%20Angeles%20Lakers/roster' \
+  -H 'X-API-Key: your_api_key_here'
+
+# Get all players (paginated)
+curl 'https://canny-kingfisher-472.convex.site/api/players?limit=50&teamType=curr' \
+  -H 'X-API-Key: your_api_key_here'
+
+# Get database stats (no auth required)
+curl 'https://canny-kingfisher-472.convex.site/api/stats'
+```
+
+### 2. Local Development
+
+#### Prerequisites
+- Node.js 18+
+- npm or yarn
+- Convex account (free)
+
+#### Setup
+
+```bash
+# Clone repository
+git clone https://github.com/woverfield/2k-web-scraping.git
+cd 2k-web-scraping
+
+# Install dependencies
 npm install
+
+# Set up Convex
+cd frontend
+npm install
+npx convex dev
+
+# In another terminal, run Next.js
+npm run dev
 ```
 
-2. Install Playwright browsers:
+#### Environment Variables
+
+Create `frontend/.env.local`:
+```env
+NEXT_PUBLIC_CONVEX_URL=your_convex_deployment_url
+```
+
+### 3. Running the Scraper
+
 ```bash
+# Install Playwright browsers
 npx playwright install chromium
+
+# Scrape current NBA teams
+CONVEX_URL=your_convex_url node scripts/runScraper.js curr
+
+# Scrape all team types
+CONVEX_URL=your_convex_url node scripts/runScraper.js all
+
+# Scrape specific team
+CONVEX_URL=your_convex_url node scripts/runScraper.js curr "Los Angeles Lakers"
 ```
 
-## Usage
+## API Reference
 
-### Quick Start
+### Authentication
 
-Scrape all teams (basic mode - faster):
+All API requests require an API key in the `X-API-Key` header:
+
+```
+X-API-Key: your_api_key_here
+```
+
+### Rate Limiting
+
+- **Limit**: 100 requests per hour per API key
+- **Headers**: Response includes `X-RateLimit-Remaining` and `X-RateLimit-Reset`
+
+### Endpoints
+
+#### GET /api/players
+
+Get all players with optional filters.
+
+**Query Parameters:**
+- `search` (string): Search by player name
+- `team` (string): Filter by team slug
+- `teamType` (string): Filter by team type (curr, class, allt)
+- `position` (string): Filter by position (PG, SG, SF, PF, C)
+- `minRating` (number): Minimum overall rating
+- `maxRating` (number): Maximum overall rating
+- `limit` (number): Results per page (default: 50, max: 100)
+- `offset` (number): Pagination offset
+
+**Example:**
 ```bash
-node scraper/index.js --all --basic --output players.json
+curl 'https://canny-kingfisher-472.convex.site/api/players?position=PG&minRating=85' \
+  -H 'X-API-Key: your_api_key_here'
 ```
 
-### Command Line Options
-
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "name": "Stephen Curry",
+      "slug": "stephen-curry",
+      "team": "Golden State Warriors",
+      "overall": 95,
+      "positions": ["PG"],
+      "height": "6'2\"",
+      "playerImage": "https://...",
+      "teamImg": "https://...",
+      "attributes": { ... },
+      "badges": { ... }
+    }
+  ],
+  "pagination": {
+    "total": 42,
+    "limit": 50,
+    "offset": 0,
+    "hasMore": false
+  }
+}
 ```
-node scraper/index.js [options]
 
-Options:
-  --all                   Scrape all team types (current, classic, all-time)
-  --type, -t <type>       Scrape specific team type (curr, class, allt)
-                          Can be used multiple times: -t curr -t class
-  --basic, -b             Basic mode - skip detailed player data (faster)
-  --output, -o <file>     Save output to JSON file instead of stdout
-  --help, -h              Display help message
-```
+#### GET /api/players/slug/:slug
 
-### Examples
+Get a specific player by slug (human-readable identifier).
 
+**Query Parameters:**
+- `teamType` (optional): Filter by team type (curr, class, allt) if player appears on multiple teams
+
+**Example:**
 ```bash
-# Scrape all teams with full details
-node scraper/index.js --all
-
-# Scrape only current teams
-node scraper/index.js --type curr
-
-# Scrape current and classic teams
-node scraper/index.js -t curr -t class
-
-# Scrape all teams (basic mode, faster)
-node scraper/index.js --all --basic
-
-# Save results to file
-node scraper/index.js --all -o players.json
+curl 'https://canny-kingfisher-472.convex.site/api/players/slug/bronny-james' \
+  -H 'X-API-Key: your_api_key_here'
 ```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "name": "Bronny James Jr.",
+    "slug": "bronny-james",
+    "team": "Los Angeles Lakers",
+    "overall": 68,
+    "positions": ["PG"],
+    "height": "6'2\"",
+    "weight": "210 lbs",
+    "build": "By Ace",
+    "attributes": {
+      "shooting": {
+        "closeShot": 69,
+        "midRangeShot": 63,
+        "threePointShot": 70
+      }
+    },
+    "badges": {
+      "total": 0,
+      "list": []
+    }
+  }
+}
+```
+
+#### GET /api/players/:id
+
+Get a specific player by Convex database ID (for advanced use).
+
+**Example:**
+```bash
+curl 'https://canny-kingfisher-472.convex.site/api/players/j97abc123...' \
+  -H 'X-API-Key: your_api_key_here'
+```
+
+#### GET /api/teams/:teamName/roster
+
+Get a team roster by team name.
+
+**Query Parameters:**
+- `teamType` (optional): Filter by team type (curr, class, allt)
+
+**Example:**
+```bash
+curl 'https://canny-kingfisher-472.convex.site/api/teams/Los%20Angeles%20Lakers/roster' \
+  -H 'X-API-Key: your_api_key_here'
+```
+
+#### GET /api/stats
+
+Get database statistics (no auth required).
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "totalPlayers": 1456,
+    "uniqueTeams": 102,
+    "avgOverall": 77
+  }
+}
+```
+
+### Error Responses
+
+```json
+{
+  "success": false,
+  "error": "Error message",
+  "code": "ERROR_CODE"
+}
+```
+
+**Error Codes:**
+- `MISSING_API_KEY`: No API key provided
+- `INVALID_API_KEY`: Invalid or expired API key
+- `RATE_LIMIT_EXCEEDED`: Too many requests
+- `NOT_FOUND`: Resource not found
+- `VALIDATION_ERROR`: Invalid parameters
+
+## Project Structure
+
+```
+.
+├── convex/                 # Convex backend
+│   ├── schema.ts          # Database schema
+│   ├── players.ts         # Player queries
+│   ├── teams.ts           # Team queries
+│   ├── apiKeys.ts         # API key management
+│   └── http.ts            # HTTP API endpoints
+│
+├── frontend/              # Next.js frontend
+│   ├── app/              # App router pages
+│   │   ├── page.tsx      # Landing page
+│   │   ├── dashboard/    # Dashboard
+│   │   └── docs/         # Documentation
+│   ├── components/       # React components
+│   └── lib/              # Utilities
+│
+├── scraper/              # Legacy scraper
+│   └── playerScraper.js # Main scraper
+│
+├── scripts/              # Utility scripts
+│   ├── runScraper.js    # Scraper orchestrator
+│   ├── mergePlayers.js  # Data merging
+│   └── verifyData.js    # Data validation
+│
+└── README.md            # This file
+```
+
+## Scraper Details
 
 ### Team Types
 
@@ -79,98 +321,105 @@ node scraper/index.js --all -o players.json
 - `class` - Classic NBA teams (historical)
 - `allt` - All-Time NBA teams (legends)
 
-## Output Format
+### Data Extracted
 
-The scraper outputs JSON with the following structure:
+**Player Data:**
+- Basic info: name, team, position, overall rating
+- Physical: height, weight, wingspan
+- Shooting attributes (15+ stats)
+- Finishing attributes (10+ stats)
+- Playmaking attributes (5+ stats)
+- Defense attributes (10+ stats)
+- Athleticism attributes (5+ stats)
+- Badges with tier levels
 
-```json
-{
-  "players": [
-    {
-      "name": "Player Name",
-      "slug": "player-name",
-      "playerUrl": "https://www.2kratings.com/player-name",
-      "team": "Team Name",
-      "teamType": "curr",
-      "overall": 88,
-      "teamImg": "https://www.2kratings.com/team-logo.svg",
-      "position": "PG",
-      "height": "6'3\"",
-      "weight": "",
-      "wingspan": "",
-      "build": "",
-      "playerImage": "",
-      "attributes": {
-        "shooting": {},
-        "finishing": {},
-        "playmaking": {},
-        "defense": {},
-        "athleticism": {},
-        "rebounding": {},
-        "special": {}
-      },
-      "badges": {
-        "total": 0,
-        "hallOfFame": 0,
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0,
-        "list": []
-      },
-      "lastUpdated": "2025-11-15T...",
-      "createdAt": "2025-11-15T..."
-    }
-  ],
-  "metadata": {
-    "scrapedAt": "2025-11-15T...",
-    "totalPlayers": 1056,
-    "duration": "73.00",
-    "teamTypes": ["curr"],
-    "skipDetails": true
-  },
-  "stats": {
-    "totalPlayers": 1056,
-    "duration": "73.00",
-    "playersPerSecond": "14.46"
-  },
-  "errors": []
-}
+**Performance:**
+- Basic Mode: ~14-15 players/second
+- Full Mode: ~5-10 players/second
+- Memory: ~200MB for 1000 players
+
+## Deployment
+
+### Frontend (Vercel)
+
+1. Push to GitHub
+2. Import to Vercel
+3. Set environment variables:
+   - `NEXT_PUBLIC_CONVEX_URL`
+4. Deploy
+
+### Backend (Convex)
+
+```bash
+cd frontend
+npx convex deploy
+```
+
+### Automated Scraping
+
+Set up a cron job or GitHub Action to run the scraper weekly:
+
+```yaml
+# .github/workflows/scrape.yml
+name: Scrape Data
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm install
+      - run: npx playwright install chromium
+      - run: CONVEX_URL=${{ secrets.CONVEX_URL }} node scripts/runScraper.js all
 ```
 
 ## Performance
 
-- **Basic Mode**: ~14-15 players/second (~1000 players in ~70 seconds)
-- **Detailed Mode**: Significantly slower (scrapes individual player pages)
-
-## Project Structure
-
-```
-.
-├── scraper/              # Enhanced scraper (current)
-│   ├── config.js        # Configuration (URLs, selectors)
-│   ├── utils.js         # Utility functions
-│   ├── teamScraper.js   # Team roster scraping
-│   ├── playerScraper.js # Individual player scraping
-│   ├── scraper.js       # Main orchestrator
-│   └── index.js         # CLI entry point
-│
-├── legacy/              # Old scripts (for reference)
-│   ├── allt.js         # All-time teams
-│   ├── class.js        # Classic teams
-│   └── curr.js         # Current teams
-│
-└── README.md           # This file
-```
+- **API Response Time**: ~150ms average
+- **Database Size**: ~1500 players, ~15MB
+- **Rate Limit**: 100 requests/hour per key
+- **Uptime**: 99.9% (Convex SLA)
 
 ## Contributing
 
-This project is currently in active development. Contributions will be welcome after the initial release.
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## Roadmap
+
+- [ ] Historical rating tracking (track changes over time)
+- [ ] Player comparison tool
+- [ ] Advanced search filters (archetype, badges)
+- [ ] GraphQL API
+- [ ] WebSocket support for real-time updates
+- [ ] Team analytics and stats
+- [ ] MyTeam card database
 
 ## License
 
-MIT
+MIT License - see LICENSE file for details
 
 ## Acknowledgments
 
 - Data sourced from [2kratings.com](https://www.2kratings.com/)
-- Built for the basketball gaming community
+- Built with [Convex](https://convex.dev/) and [Next.js](https://nextjs.org/)
+- UI components from [shadcn/ui](https://ui.shadcn.com/)
+- Icons from [Lucide](https://lucide.dev/)
+
+## Support
+
+- GitHub Issues: [Report bugs or request features](https://github.com/woverfield/2k-web-scraping/issues)
+- Documentation: [View full docs](https://canny-kingfisher-472.convex.site/docs)
+
+## Disclaimer
+
+This project is not affiliated with, endorsed by, or connected to 2K Sports, the NBA, or any of their subsidiaries. All data is publicly available from 2kratings.com. This is a fan-made project for educational and community purposes.

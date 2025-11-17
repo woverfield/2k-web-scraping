@@ -69,7 +69,7 @@ export default function SearchEndpointPage() {
           <LanguageTabs
             examples={{
               javascript: `const response = await fetch(
-  'https://polished-bee-946.convex.site/api/players/search?q=lebron',
+  'https://canny-kingfisher-472.convex.site/api/players/search?q=lebron',
   {
     headers: {
       'X-API-Key': 'your_api_key_here'
@@ -82,7 +82,7 @@ console.log(data.data); // Array of matching players`,
               python: `import requests
 
 response = requests.get(
-    'https://polished-bee-946.convex.site/api/players/search',
+    'https://canny-kingfisher-472.convex.site/api/players/search',
     params={'q': 'lebron'},
     headers={'X-API-Key': 'your_api_key_here'}
 )
@@ -90,7 +90,7 @@ response = requests.get(
 data = response.json()
 print(data['data'])  # Array of matching players`,
               curl: `curl -X GET \\
-  'https://polished-bee-946.convex.site/api/players/search?q=lebron' \\
+  'https://canny-kingfisher-472.convex.site/api/players/search?q=lebron' \\
   -H 'X-API-Key: your_api_key_here'`,
             }}
           />
