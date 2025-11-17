@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { api } from "../../convex/_generated/api";
 import { ApiKeyDisplay } from "@/components/api-key-display";
 import { RegistrationDialog } from "@/components/registration-dialog";
 import { Button } from "@/components/ui/button";

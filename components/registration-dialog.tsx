@@ -16,7 +16,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ApiKeyDisplay } from "@/components/api-key-display";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "../convex/_generated/api";
 
 interface RegistrationDialogProps {
   open: boolean;

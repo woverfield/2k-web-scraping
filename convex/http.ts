@@ -144,11 +144,12 @@ app.post("/api/register",
     try {
       const { email, name, purpose } = c.req.valid("json");
 
-      const result = await c.env.runMutation(api.apiKeys.createApiKey, {
-        email,
-        name,
-        purpose,
-      });
+      const createKeyArgs: any = { email, name };
+      if (purpose !== undefined) {
+        createKeyArgs.purpose = purpose;
+      }
+
+      const result = await c.env.runMutation(api.apiKeys.createApiKey, createKeyArgs);
 
       return c.json(successResponse({
         apiKey: result.apiKey,
@@ -402,10 +403,12 @@ app.get("/api/players/search",
     try {
       const { q, teamType, limit } = c.req.valid("query");
 
-      const results = await c.env.runQuery(api.players.searchPlayers, {
-        query: q,
-        teamType,
-      });
+      const searchArgs: any = { query: q };
+      if (teamType !== undefined) {
+        searchArgs.teamType = teamType;
+      }
+
+      const results = await c.env.runQuery(api.players.searchPlayers, searchArgs);
 
       const limitedResults = results.slice(0, limit);
 
@@ -477,10 +480,12 @@ app.get("/api/players/slug/:slug",
       const slug = c.req.param("slug");
       const { teamType } = c.req.valid("query");
 
-      const player = await c.env.runQuery(api.players.getPlayerBySlug, {
-        slug,
-        teamType,
-      });
+      const playerArgs: any = { slug };
+      if (teamType !== undefined) {
+        playerArgs.teamType = teamType;
+      }
+
+      const player = await c.env.runQuery(api.players.getPlayerBySlug, playerArgs);
 
       if (!player) {
         return c.json(errorResponse(
@@ -519,9 +524,12 @@ app.get("/api/teams",
     try {
       const { teamType } = c.req.valid("query");
 
-      const teams = await c.env.runQuery(api.players.getTeams, {
-        teamType,
-      });
+      const teamsArgs: any = {};
+      if (teamType !== undefined) {
+        teamsArgs.teamType = teamType;
+      }
+
+      const teams = await c.env.runQuery(api.players.getTeams, teamsArgs);
 
       // Add caching headers - teams list cached for 1 hour
       c.header("Cache-Control", "public, max-age=3600");
@@ -551,10 +559,12 @@ app.get("/api/teams/:teamName/roster",
       const teamName = decodeURIComponent(c.req.param("teamName"));
       const { teamType } = c.req.valid("query");
 
-      const roster = await c.env.runQuery(api.players.getPlayersByTeam, {
-        team: teamName,
-        teamType,
-      });
+      const rosterArgs: any = { team: teamName };
+      if (teamType !== undefined) {
+        rosterArgs.teamType = teamType;
+      }
+
+      const roster = await c.env.runQuery(api.players.getPlayersByTeam, rosterArgs);
 
       if (roster.length === 0) {
         return c.json(errorResponse(

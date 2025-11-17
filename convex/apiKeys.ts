@@ -151,15 +151,20 @@ export const logRequest = mutation({
   },
   handler: async (ctx, args) => {
     // Create request log
-    await ctx.db.insert("requestLogs", {
+    const logData: any = {
       apiKeyId: args.apiKeyId,
       endpoint: args.endpoint,
       method: args.method,
       statusCode: args.statusCode,
       responseTime: args.responseTime,
       timestamp: new Date().toISOString(),
-      queryParams: args.queryParams,
-    });
+    };
+
+    if (args.queryParams !== undefined) {
+      logData.queryParams = args.queryParams;
+    }
+
+    await ctx.db.insert("requestLogs", logData);
 
     // Update API key's last request time and total count
     const apiKey = await ctx.db.get(args.apiKeyId);

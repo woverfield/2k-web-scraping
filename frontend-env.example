@@ -1,0 +1,6 @@
+# Convex Backend URL
+# Get this from your Convex dashboard: https://dashboard.convex.dev
+NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
+
+# Optional: For local development with Convex dev server
+# NEXT_PUBLIC_CONVEX_URL=http://localhost:3210
