@@ -5,7 +5,8 @@
     "lib": ["ES2021"],
     "moduleResolution": "node",
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "noEmit": true
   },
   "include": ["./**/*"],
   "exclude": ["node_modules"]
