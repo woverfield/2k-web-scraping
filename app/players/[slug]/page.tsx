@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/breadcrumb";
 import { PlayerHeader } from "@/components/player/player-header";
 import { PlayerRadarChart } from "@/components/player/radar-chart";
-import { TopStats } from "@/components/player/top-stats";
 import { AttributeGrid } from "@/components/player/attribute-grid";
 import { BadgesGrid } from "@/components/player/badges-grid";
 import { AnimatedContainer } from "@/components/ui/animated-container";
@@ -82,25 +81,17 @@ export default function PlayerPage() {
         <PlayerHeader player={player} />
       </AnimatedContainer>
 
-      {/* Main Content Grid */}
-      <div className="grid gap-8 lg:grid-cols-2">
-        {/* Left Column */}
-        <div className="space-y-8">
-          <AnimatedContainer variant="slide" delay={0.1}>
-            <PlayerRadarChart player={player} />
-          </AnimatedContainer>
+      {/* Main Content */}
+      <div className="space-y-8">
+        {/* All Attributes - Full Width */}
+        <AnimatedContainer variant="slide" delay={0.1}>
+          <AttributeGrid player={player} />
+        </AnimatedContainer>
 
-          <AnimatedContainer variant="slide" delay={0.2}>
-            <TopStats player={player} />
-          </AnimatedContainer>
-        </div>
-
-        {/* Right Column */}
-        <div className="space-y-8">
-          <AnimatedContainer variant="slide" delay={0.15}>
-            <AttributeGrid player={player} />
-          </AnimatedContainer>
-        </div>
+        {/* Player Ratings Chart - Full Width */}
+        <AnimatedContainer variant="slide" delay={0.15}>
+          <PlayerRadarChart player={player} />
+        </AnimatedContainer>
       </div>
 
       {/* Badges Section (Full Width) */}

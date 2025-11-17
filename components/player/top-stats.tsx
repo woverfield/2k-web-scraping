@@ -2,22 +2,23 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { fadeIn, staggerContainer, staggerItem } from "@/lib/animations";
+import { staggerItem } from "@/lib/animations";
 import { getRatingColor } from "@/lib/rating-colors";
 import { getTopThreeStats } from "@/lib/player-stats";
-import { Trophy, TrendingUp, Star } from "lucide-react";
 import type { Player } from "@/types/player";
 
 export interface TopStatsProps {
   player: Player;
+  rankings?: Array<{ attribute: string; rank: number; total: number }>;
   className?: string;
 }
 
-const ICONS = [Trophy, TrendingUp, Star];
-
-export function TopStats({ player, className }: TopStatsProps) {
+/**
+ * Compact top stats display for player header
+ * Shows top 3 attributes with optional ranking information
+ */
+export function TopStats({ player, rankings, className }: TopStatsProps) {
   const topStats = React.useMemo(() => getTopThreeStats(player), [player]);
 
   if (topStats.length === 0) {
@@ -25,76 +26,49 @@ export function TopStats({ player, className }: TopStatsProps) {
   }
 
   return (
-    <motion.div
-      variants={fadeIn}
-      initial="initial"
-      animate="animate"
-      className={cn(className)}
-    >
-      <Card>
-        <CardHeader>
-          <CardTitle>Top Attributes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {topStats.map((stat, index) => {
-              const Icon = ICONS[index];
-              const color = getRatingColor(stat.value);
-              const rank = index + 1;
+    <div className={cn("space-y-2", className)}>
+      <h3 className="text-sm font-semibold text-muted-foreground">
+        Top Attributes
+      </h3>
+      <div className="flex flex-col gap-2">
+        {topStats.map((stat, index) => {
+          const color = getRatingColor(stat.value);
+          const ranking = rankings?.find((r) => r.attribute === stat.name);
 
-              return (
-                <motion.div
-                  key={`${stat.attribute}-${index}`}
-                  variants={staggerItem}
-                  initial="initial"
-                  animate="animate"
-                  className="flex items-center gap-4 rounded-lg border bg-card p-4 transition-colors hover:bg-accent"
+          return (
+            <motion.div
+              key={`${stat.name}-${index}`}
+              variants={staggerItem}
+              initial="initial"
+              animate="animate"
+              className="flex items-center justify-between gap-3 rounded-md border bg-card/50 px-3 py-2"
+            >
+              {/* Attribute name and value */}
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <span
+                  className="text-lg font-bold tabular-nums"
+                  style={{ color }}
                 >
-                  {/* Rank Badge */}
-                  <div
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold"
-                    style={{
-                      backgroundColor: `${color}20`,
-                      color,
-                    }}
-                  >
-                    {rank}
-                  </div>
+                  {stat.value}
+                </span>
+                <span className="text-sm font-medium truncate">
+                  {stat.label}
+                </span>
+              </div>
 
-                  {/* Icon */}
-                  <div
-                    className="rounded-lg p-2"
-                    style={{
-                      backgroundColor: `${color}15`,
-                    }}
-                  >
-                    <Icon
-                      className="h-5 w-5"
-                      style={{ color }}
-                    />
-                  </div>
-
-                  {/* Attribute Name */}
-                  <div className="flex-1">
-                    <p className="font-semibold">{stat.attribute}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {stat.category}
-                    </p>
-                  </div>
-
-                  {/* Value */}
-                  <div
-                    className="text-2xl font-bold tabular-nums"
-                    style={{ color }}
-                  >
-                    {stat.value}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
+              {/* Ranking badge */}
+              {ranking && (
+                <div className="shrink-0 rounded-md bg-muted px-2 py-1">
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    #{ranking.rank}
+                    <span className="opacity-60"> / {ranking.total}</span>
+                  </span>
+                </div>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
