@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { LanguageTabs } from "@/components/language-tabs";
+import { TryItLiveButton } from "@/components/try-it-live-button";
 import { ArrowRight } from "lucide-react";
 
 export default function QuickstartPage() {
@@ -147,6 +148,22 @@ if data['success']:
               </span>
             </li>
           </ul>
+        </div>
+
+        <div>
+          <h2 className="mb-3 text-2xl font-bold">5. Explore visually in the playground</h2>
+          <p className="mb-4 text-slate-600 dark:text-slate-400">
+            Not ready to write code yet? Try our interactive playground to explore player data
+            visually with advanced filtering and search.
+          </p>
+          <div className="flex gap-3">
+            <TryItLiveButton href="/playground" label="Explore All Players" />
+            <TryItLiveButton
+              href="/teams"
+              label="Browse Teams"
+              variant="secondary"
+            />
+          </div>
         </div>
 
         <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900">

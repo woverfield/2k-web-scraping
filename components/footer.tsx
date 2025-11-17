@@ -6,6 +6,7 @@ export function Footer() {
     <footer className="border-t bg-slate-50 dark:bg-slate-950">
       <div className="container mx-auto px-4 py-12">
         <div className="grid gap-8 md:grid-cols-4">
+          {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 font-semibold mb-3">
               <span>nba2k-api</span>
@@ -15,40 +16,59 @@ export function Footer() {
             </p>
           </div>
 
+          {/* Explore */}
           <div>
-            <h3 className="mb-3 text-sm font-semibold">Documentation</h3>
+            <h3 className="mb-3 text-sm font-semibold">Explore</h3>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link href="/playground" className="text-muted-foreground hover:text-foreground">
+                  Playground
+                </Link>
+              </li>
+              <li>
+                <Link href="/teams" className="text-muted-foreground hover:text-foreground">
+                  Teams
+                </Link>
+              </li>
+              <li>
+                <Link href="/playground" className="text-muted-foreground hover:text-foreground">
+                  Player Search
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Developers */}
+          <div>
+            <h3 className="mb-3 text-sm font-semibold">Developers</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/docs" className="text-muted-foreground hover:text-foreground">
-                  Getting Started
+                  API Documentation
                 </Link>
               </li>
               <li>
-                <Link href="/docs#endpoints" className="text-muted-foreground hover:text-foreground">
-                  API Reference
+                <Link href="/dashboard" className="text-muted-foreground hover:text-foreground">
+                  Dashboard
                 </Link>
               </li>
               <li>
-                <Link href="/docs#authentication" className="text-muted-foreground hover:text-foreground">
+                <Link href="/docs/authentication" className="text-muted-foreground hover:text-foreground">
                   Authentication
                 </Link>
               </li>
               <li>
-                <Link href="/docs#rate-limiting" className="text-muted-foreground hover:text-foreground">
+                <Link href="/docs/rate-limits" className="text-muted-foreground hover:text-foreground">
                   Rate Limiting
                 </Link>
               </li>
             </ul>
           </div>
 
+          {/* Resources */}
           <div>
             <h3 className="mb-3 text-sm font-semibold">Resources</h3>
             <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/dashboard" className="text-muted-foreground hover:text-foreground">
-                  Dashboard
-                </Link>
-              </li>
               <li>
                 <a
                   href="https://github.com/woverfield/2k-web-scraping"
@@ -69,14 +89,8 @@ export function Footer() {
                   2K Ratings Source
                 </a>
               </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="mb-3 text-sm font-semibold">Legal</h3>
-            <ul className="space-y-2 text-sm">
               <li>
-                <span className="text-muted-foreground">
+                <span className="text-muted-foreground text-xs block mt-4">
                   Data sourced from 2kratings.com
                 </span>
               </li>

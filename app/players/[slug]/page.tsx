@@ -1,5 +1,7 @@
 "use client";
 
+import * as React from "react";
+import dynamic from "next/dynamic";
 import { useParams, useSearchParams, notFound } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -12,17 +14,33 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { PlayerHeader } from "@/components/player/player-header";
-import { PlayerRadarChart } from "@/components/player/radar-chart";
 import { AttributeGrid } from "@/components/player/attribute-grid";
-import { BadgesGrid } from "@/components/player/badges-grid";
 import { AnimatedContainer } from "@/components/ui/animated-container";
 import { LoadingCard } from "@/components/ui/loading-card";
+
+// Code split heavy components with loading fallbacks
+const PlayerRadarChart = dynamic(
+  () => import("@/components/player/radar-chart").then((mod) => ({ default: mod.PlayerRadarChart })),
+  {
+    loading: () => <LoadingCard variant="player" />,
+    ssr: false,
+  }
+);
+
+const BadgesGrid = dynamic(
+  () => import("@/components/player/badges-grid").then((mod) => ({ default: mod.BadgesGrid })),
+  {
+    loading: () => <LoadingCard variant="player" />,
+    ssr: false,
+  }
+);
 
 export default function PlayerPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const slug = params.slug as string;
   const type = searchParams.get("type") as "curr" | "class" | "allt" | null;
+  const ref = searchParams.get("ref"); // Track where user came from
 
   const player = useQuery(api.players.getPlayerBySlug, {
     slug,
@@ -57,6 +75,17 @@ export default function PlayerPage() {
     notFound();
   }
 
+  // Dynamic breadcrumb based on referrer
+  const breadcrumbMiddle = ref === "team"
+    ? {
+        label: player.team,
+        href: `/teams/${player.team.toLowerCase().replace(/[^a-z0-9]+/g, "-")}?type=${player.teamType}`,
+      }
+    : {
+        label: "Players",
+        href: "/playground",
+      };
+
   return (
     <div className="container mx-auto max-w-7xl space-y-8 px-4 py-8">
       {/* Breadcrumb Navigation */}
@@ -67,7 +96,9 @@ export default function PlayerPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="/playground">Players</BreadcrumbLink>
+            <BreadcrumbLink href={breadcrumbMiddle.href}>
+              {breadcrumbMiddle.label}
+            </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>

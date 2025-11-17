@@ -78,7 +78,12 @@ export function PlayerHeader({ player, rankings, className }: PlayerHeaderProps)
                   />
                 </div>
               )}
-              <span className="font-semibold">{player.team}</span>
+              <a
+                href={`/teams/${player.team.toLowerCase().replace(/[^a-z0-9]+/g, "-")}?type=${player.teamType}`}
+                className="font-semibold hover:text-primary transition-colors"
+              >
+                {player.team}
+              </a>
               {player.positions && player.positions.length > 0 && (
                 <>
                   <span className="text-muted-foreground/50">•</span>

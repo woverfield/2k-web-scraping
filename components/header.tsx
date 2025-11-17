@@ -4,16 +4,44 @@ import { createPortal } from "react-dom";
 import { Logo } from "@/components/logo";
 import { MenuToggleIcon } from "@/components/menu-toggle-icon";
 import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useScroll } from "@/hooks/use-scroll";
 import { cn } from "@/lib/utils";
-import { Github, Icon } from "lucide-react";
+import { Github, SlidersHorizontal, Users, ChevronDown } from "lucide-react";
 import { basketball } from "@lucide/lab";
 
 export function Header() {
   const [open, setOpen] = React.useState(false);
+  const [mobileExploreExpanded, setMobileExploreExpanded] = React.useState(false);
   const scrolled = useScroll(10);
 
-  const links = [
+  const exploreLinks = [
+    {
+      label: "Playground",
+      href: "/playground",
+      icon: SlidersHorizontal,
+      description: "Browse and filter all players",
+    },
+    {
+      label: "Teams",
+      href: "/teams",
+      icon: Users,
+      description: "View team rosters and stats",
+    },
+  ];
+
+  const mainLinks = [
     {
       label: "Documentation",
       href: "/docs",
@@ -21,10 +49,6 @@ export function Header() {
     {
       label: "Dashboard",
       href: "/dashboard",
-    },
-    {
-      label: "GitHub",
-      href: "https://github.com/woverfield/2k-web-scraping",
     },
   ];
 
@@ -60,23 +84,71 @@ export function Header() {
             "md:px-2": scrolled,
           }
         )}
+        aria-label="Main navigation"
       >
-        <a className="rounded-md p-2 hover:bg-accent" href="/">
+        <a className="rounded-md p-2 hover:bg-accent" href="/" aria-label="Home">
           <Logo />
         </a>
         <div className="hidden items-center gap-2 md:flex">
-          {links.map((link, i) => (
+          {mainLinks.map((link, i) => (
             <a
               className={buttonVariants({ variant: "ghost" })}
               href={link.href}
               key={i}
-              target={link.href.startsWith("http") ? "_blank" : undefined}
-              rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
             >
-              {link.label === "GitHub" && <Github className="h-4 w-4" />}
               {link.label}
             </a>
           ))}
+
+          {/* Explore Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={buttonVariants({ variant: "ghost" })}
+              aria-haspopup="menu"
+            >
+              Explore
+              <ChevronDown className="ml-1 h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {exploreLinks.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <DropdownMenuItem key={link.label} asChild>
+                    <a href={link.href} className="flex items-start gap-3 cursor-pointer">
+                      <Icon className="mt-0.5 h-4 w-4 text-primary" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">{link.label}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {link.description}
+                        </span>
+                      </div>
+                    </a>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* GitHub Icon with Tooltip */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a
+                  className={buttonVariants({ variant: "ghost", size: "icon" })}
+                  href="https://github.com/woverfield/2k-web-scraping"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="View on GitHub"
+                >
+                  <Github className="h-4 w-4" />
+                </a>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View on GitHub</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           <Button asChild>
             <a href="/dashboard">Get API Key</a>
           </Button>
@@ -86,6 +158,7 @@ export function Header() {
           onClick={() => setOpen(!open)}
           size="icon"
           variant="outline"
+          aria-label={open ? "Close menu" : "Open menu"}
         >
           <MenuToggleIcon className="size-5" duration={300} open={open} />
         </Button>
@@ -93,7 +166,7 @@ export function Header() {
 
       <MobileMenu className="flex flex-col justify-between gap-2" open={open}>
         <div className="grid gap-y-2">
-          {links.map((link) => (
+          {mainLinks.map((link) => (
             <a
               className={buttonVariants({
                 variant: "ghost",
@@ -101,13 +174,62 @@ export function Header() {
               })}
               href={link.href}
               key={link.label}
-              target={link.href.startsWith("http") ? "_blank" : undefined}
-              rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
             >
-              {link.label === "GitHub" && <Github className="mr-2 h-4 w-4" />}
               {link.label}
             </a>
           ))}
+
+          {/* Explore Section - Expandable */}
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-2 mt-2">
+            <button
+              onClick={() => setMobileExploreExpanded(!mobileExploreExpanded)}
+              className={buttonVariants({
+                variant: "ghost",
+                className: "justify-between w-full",
+              })}
+            >
+              <span>Explore</span>
+              <ChevronDown
+                className={cn("h-4 w-4 transition-transform", {
+                  "rotate-180": mobileExploreExpanded,
+                })}
+              />
+            </button>
+            {mobileExploreExpanded && (
+              <div className="ml-4 mt-2 grid gap-y-2">
+                {exploreLinks.map((link) => {
+                  const Icon = link.icon;
+                  return (
+                    <a
+                      className={buttonVariants({
+                        variant: "ghost",
+                        className: "justify-start",
+                      })}
+                      href={link.href}
+                      key={link.label}
+                    >
+                      <Icon className="mr-2 h-4 w-4" />
+                      {link.label}
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* GitHub */}
+          <a
+            className={buttonVariants({
+              variant: "ghost",
+              className: "justify-start",
+            })}
+            href="https://github.com/woverfield/2k-web-scraping"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Github className="mr-2 h-4 w-4" />
+            GitHub
+          </a>
         </div>
         <div className="flex flex-col gap-2">
           <Button className="w-full" asChild>

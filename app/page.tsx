@@ -11,9 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { LanguageTabs } from "@/components/language-tabs";
 import { RegistrationDialog } from "@/components/registration-dialog";
 import { PlayerSearchDemo } from "@/components/player-search-demo";
+import { FeatureShowcaseCard } from "@/components/feature-showcase-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { API_KEY_STORAGE_KEY } from "@/lib/constants";
-import { Users, Database, TrendingUp } from "lucide-react";
+import { Users, Database, TrendingUp, SlidersHorizontal, UserCircle, BarChart3, Zap } from "lucide-react";
 
 export default function Home() {
   const [showRegistration, setShowRegistration] = useState(false);
@@ -51,18 +52,21 @@ export default function Home() {
           <div className="container mx-auto px-4 py-12 md:py-16">
             <div className="mx-auto max-w-3xl text-center">
               <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl">
-                Access NBA 2K Player Ratings via REST API
+                NBA 2K Player Data: REST API & Interactive Explorer
               </h1>
               <p className="mb-8 text-lg text-slate-600 dark:text-slate-400">
                 Get detailed player attributes, team rosters, and historical data from NBA 2K ratings.
-                Fast, reliable, and developer-friendly API with built-in caching and authentication.
+                Query via REST API or explore visually with our interactive playground.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
                 <Button size="lg" onClick={handleGetApiKey}>
                   {hasApiKey ? "View Dashboard" : "Get API Key"}
                 </Button>
                 <Button size="lg" variant="outline" asChild>
-                  <Link href="/docs">Read Documentation</Link>
+                  <Link href="/playground">Explore Playground</Link>
+                </Button>
+                <Button size="lg" variant="outline" asChild>
+                  <Link href="/teams">Browse Teams</Link>
                 </Button>
               </div>
             </div>
@@ -101,7 +105,7 @@ export default function Home() {
             <CardHeader>
               <CardTitle>Fast Performance</CardTitle>
               <CardDescription>
-                159ms average response time with intelligent caching and ETag support for optimal bandwidth usage
+                &lt; 100ms response times with intelligent caching and ETag support for optimal bandwidth usage
               </CardDescription>
             </CardHeader>
           </Card>
@@ -132,11 +136,74 @@ export default function Home() {
               </CardDescription>
             </CardHeader>
           </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Interactive Playground</CardTitle>
+              <CardDescription>
+                Browse and filter 2,500+ players with advanced search, team filters, and position selectors
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Player Detail Pages</CardTitle>
+              <CardDescription>
+                Rich visualizations with radar charts, attribute grids, and badge breakdowns for every player
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Team Pages</CardTitle>
+              <CardDescription>
+                View complete rosters, team stats, and player distributions for current, classic, and all-time teams
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      </section>
+
+      {/* More Than Just an API Section */}
+      <section className="border-t bg-white dark:bg-slate-900">
+        <div className="container mx-auto px-4 py-16">
+          <div className="mb-12 text-center">
+            <h2 className="mb-4 text-3xl font-bold">More Than Just an API</h2>
+            <p className="text-lg text-slate-600 dark:text-slate-400">
+              Explore visually with our interactive tools or query programmatically via REST API
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-3">
+            <FeatureShowcaseCard
+              title="Interactive Playground"
+              description="Browse, filter, and search through 2,500+ NBA 2K players with advanced filtering by team, position, and rating. No API key required."
+              href="/playground"
+              icon={SlidersHorizontal}
+              ctaText="Explore Players"
+            />
+            <FeatureShowcaseCard
+              title="Player Detail Pages"
+              description="View comprehensive player stats with radar charts, attribute breakdowns, and badge visualizations. See the data your API returns."
+              href="/playground"
+              icon={UserCircle}
+              ctaText="View Players"
+            />
+            <FeatureShowcaseCard
+              title="Team Pages"
+              description="Browse current, classic, and all-time team rosters with stats and player distributions. Perfect for exploring team compositions."
+              href="/teams"
+              icon={Users}
+              ctaText="Browse Teams"
+            />
+          </div>
         </div>
       </section>
 
       {/* Live Search Demo */}
-      <section className="border-t bg-white dark:bg-slate-900">
+      <section className="border-t bg-slate-50 dark:bg-slate-950">
         <div className="container mx-auto px-4 py-16">
           <div className="mb-8 text-center">
             <h2 className="mb-4 text-3xl font-bold">Try it Live</h2>
@@ -146,6 +213,11 @@ export default function Home() {
           </div>
           <div className="mx-auto flex max-w-2xl justify-center">
             <PlayerSearchDemo />
+          </div>
+          <div className="mt-6 text-center">
+            <Link href="/playground" className="text-sm text-primary hover:underline">
+              Explore all 2,500+ players in the playground →
+            </Link>
           </div>
         </div>
       </section>

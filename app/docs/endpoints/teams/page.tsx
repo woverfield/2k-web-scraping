@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { CodeBlock } from "@/components/code-block";
 import { LanguageTabs } from "@/components/language-tabs";
+import { TryItLiveButton } from "@/components/try-it-live-button";
 import {
   Table,
   TableBody,
@@ -23,6 +24,14 @@ export default function TeamsEndpointPage() {
         <p className="text-lg text-slate-600 dark:text-slate-400">
           Retrieve a list of all NBA 2K teams with their rosters.
         </p>
+        <div className="mt-4 flex gap-3">
+          <TryItLiveButton href="/teams" label="Browse All Teams" />
+          <TryItLiveButton
+            href="/teams?type=class"
+            label="View Classic Teams"
+            variant="secondary"
+          />
+        </div>
       </div>
 
       <div className="space-y-6">

@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { CodeBlock } from "@/components/code-block";
 import { LanguageTabs } from "@/components/language-tabs";
+import { TryItLiveButton } from "@/components/try-it-live-button";
 import {
   Table,
   TableBody,
@@ -23,6 +24,14 @@ export default function SearchEndpointPage() {
         <p className="text-lg text-slate-600 dark:text-slate-400">
           Search for players by name with fuzzy matching support.
         </p>
+        <div className="mt-4 flex gap-3">
+          <TryItLiveButton href="/playground?search=lebron" label="Try Search: LeBron" />
+          <TryItLiveButton
+            href="/playground?search=curry"
+            label="Try Search: Curry"
+            variant="secondary"
+          />
+        </div>
       </div>
 
       <div className="space-y-6">

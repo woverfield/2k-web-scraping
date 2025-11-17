@@ -379,3 +379,88 @@ export const getStats = query({
     return stats;
   },
 });
+
+/**
+ * Get all players with comprehensive filtering options
+ */
+export const getAllFiltered = query({
+  args: {
+    search: v.optional(v.string()),
+    teamType: v.optional(v.union(v.literal("curr"), v.literal("class"), v.literal("allt"))),
+    teams: v.optional(v.array(v.string())),
+    positions: v.optional(v.array(v.string())),
+    minOverall: v.optional(v.number()),
+    maxOverall: v.optional(v.number()),
+    sortBy: v.optional(v.union(
+      v.literal("overall-desc"),
+      v.literal("overall-asc"),
+      v.literal("name-asc"),
+      v.literal("name-desc")
+    )),
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // Get all players
+    let players = await ctx.db.query("players").collect();
+
+    // Filter by search query (name)
+    if (args.search) {
+      const searchLower = args.search.toLowerCase();
+      players = players.filter((p) =>
+        p.name.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Filter by team type
+    if (args.teamType) {
+      players = players.filter((p) => p.teamType === args.teamType);
+    }
+
+    // Filter by teams
+    if (args.teams && args.teams.length > 0) {
+      players = players.filter((p) => args.teams!.includes(p.team));
+    }
+
+    // Filter by positions
+    if (args.positions && args.positions.length > 0) {
+      players = players.filter((p) =>
+        p.positions?.some((pos) => args.positions!.includes(pos))
+      );
+    }
+
+    // Filter by overall rating range
+    if (args.minOverall !== undefined) {
+      players = players.filter((p) => p.overall >= args.minOverall!);
+    }
+    if (args.maxOverall !== undefined) {
+      players = players.filter((p) => p.overall <= args.maxOverall!);
+    }
+
+    // Sort players
+    const sortBy = args.sortBy || "overall-desc";
+    if (sortBy === "overall-desc") {
+      players.sort((a, b) => b.overall - a.overall);
+    } else if (sortBy === "overall-asc") {
+      players.sort((a, b) => a.overall - b.overall);
+    } else if (sortBy === "name-asc") {
+      players.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === "name-desc") {
+      players.sort((a, b) => b.name.localeCompare(a.name));
+    }
+
+    // Get total count before pagination
+    const totalCount = players.length;
+
+    // Apply pagination
+    const offset = args.offset || 0;
+    const limit = args.limit || 50;
+    players = players.slice(offset, offset + limit);
+
+    return {
+      players,
+      totalCount,
+      hasMore: offset + limit < totalCount,
+    };
+  },
+});

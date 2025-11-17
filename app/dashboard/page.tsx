@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { ApiKeyDisplay } from "@/components/api-key-display";
 import { RegistrationDialog } from "@/components/registration-dialog";
+import { QuickActionCard } from "@/components/quick-action-card";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,9 +33,13 @@ import {
   Code2,
   Github,
   TrendingUp,
+  SlidersHorizontal,
+  Users,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import { API_KEY_STORAGE_KEY } from "@/lib/constants";
+import { parseEndpointToDeepLink } from "@/lib/deep-link-parser";
 
 export default function DashboardPage() {
   const [apiKey, setApiKey] = useState<string | null>(null);
@@ -213,7 +218,7 @@ export default function DashboardPage() {
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold">API Dashboard</h1>
           <p className="text-slate-600 dark:text-slate-400">
-            Monitor your API usage and manage your API key
+            Try the playground to explore data visually, then use the API to integrate into your application
           </p>
         </div>
 
@@ -324,32 +329,49 @@ export default function DashboardPage() {
                         <TableHead className="text-right">
                           Response Time
                         </TableHead>
+                        <TableHead className="text-right">View</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {stats.recentRequests.map((request, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="text-sm">
-                            {formatTimestamp(request.timestamp)}
-                          </TableCell>
-                          <TableCell className="font-mono text-xs">
-                            {request.endpoint}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={getMethodColor(request.method)}>
-                              {request.method}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusColor(request.statusCode)}>
-                              {request.statusCode}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right text-sm">
-                            {request.responseTime}ms
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {stats.recentRequests.map((request, index) => {
+                        const deepLink = parseEndpointToDeepLink(request.endpoint);
+                        return (
+                          <TableRow key={index}>
+                            <TableCell className="text-sm">
+                              {formatTimestamp(request.timestamp)}
+                            </TableCell>
+                            <TableCell className="font-mono text-xs">
+                              {request.endpoint}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={getMethodColor(request.method)}>
+                                {request.method}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={getStatusColor(request.statusCode)}>
+                                {request.statusCode}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right text-sm">
+                              {request.responseTime}ms
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {deepLink.available ? (
+                                <Link
+                                  href={deepLink.href}
+                                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                                >
+                                  {deepLink.label}
+                                  <ExternalLink className="h-3 w-3" />
+                                </Link>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
@@ -357,38 +379,61 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Quick Links */}
+          {/* Explore Your Data */}
           <Card>
             <CardHeader>
-              <CardTitle>Quick Links</CardTitle>
+              <CardTitle>Explore Your Data</CardTitle>
               <CardDescription>
-                Helpful resources to get started
+                Preview what your API returns with our interactive tools
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <Button variant="outline" className="justify-start" asChild>
-                  <Link href="/docs">
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    View Documentation
-                  </Link>
-                </Button>
-                <Button variant="outline" className="justify-start" asChild>
-                  <Link href="/docs/quickstart">
-                    <Code2 className="mr-2 h-4 w-4" />
-                    Code Examples
-                  </Link>
-                </Button>
-                <Button variant="outline" className="justify-start" asChild>
-                  <Link
-                    href="https://github.com/woverfield/2k-web-scraping/issues"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Github className="mr-2 h-4 w-4" />
-                    Report Issue
-                  </Link>
-                </Button>
+              <div className="grid gap-6 sm:grid-cols-3">
+                <div className="space-y-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                    <SlidersHorizontal className="h-6 w-6 text-primary" />
+                  </div>
+                  <h4 className="font-semibold">Player Playground</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Filter through all players interactively
+                  </p>
+                  <Button variant="outline" size="sm" asChild className="w-full">
+                    <Link href="/playground">
+                      Explore Players
+                      <ExternalLink className="ml-2 h-3 w-3" />
+                    </Link>
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                    <Users className="h-6 w-6 text-primary" />
+                  </div>
+                  <h4 className="font-semibold">Team Browser</h4>
+                  <p className="text-sm text-muted-foreground">
+                    View rosters and team statistics
+                  </p>
+                  <Button variant="outline" size="sm" asChild className="w-full">
+                    <Link href="/teams">
+                      Browse Teams
+                      <ExternalLink className="ml-2 h-3 w-3" />
+                    </Link>
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                    <Code2 className="h-6 w-6 text-primary" />
+                  </div>
+                  <h4 className="font-semibold">API Docs</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Reference and code examples
+                  </p>
+                  <Button variant="outline" size="sm" asChild className="w-full">
+                    <Link href="/docs">
+                      View Docs
+                      <ExternalLink className="ml-2 h-3 w-3" />
+                    </Link>
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
