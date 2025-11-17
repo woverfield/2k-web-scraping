@@ -15,8 +15,8 @@ export const LogoIcon = (props: React.ComponentProps<"svg">) => (
 );
 
 export const Logo = (props: React.ComponentProps<"span">) => (
-  <span className="flex flex-row items-center gap-2 text-lg font-semibold" {...props}>
-    <Icon iconNode={basketball} className="h-4 w-4" />
-    nba2k-api
+  <span className="flex flex-row items-center gap-2 text-lg font-semibold whitespace-nowrap" {...props}>
+    <Icon iconNode={basketball} className="h-4 w-4 shrink-0" />
+    <p>nba2k-api</p>
   </span>
 );

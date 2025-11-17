@@ -62,7 +62,7 @@ export function Header() {
         )}
       >
         <a className="rounded-md p-2 hover:bg-accent" href="/">
-          <Logo className="h-4" />
+          <Logo />
         </a>
         <div className="hidden items-center gap-2 md:flex">
           {links.map((link, i) => (
