@@ -25,7 +25,9 @@ export default defineSchema({
     weight: v.optional(v.string()),
     wingspan: v.optional(v.string()),
 
-    // Build/archetype
+    // Archetype (e.g., "Speedy Blow-By Ace") - new field
+    archetype: v.optional(v.string()),
+    // Build - old field, kept for backwards compatibility
     build: v.optional(v.string()),
 
     // Images

@@ -74,10 +74,20 @@ export async function scrapePlayerDetails(page, basicPlayer) {
           }
         }
 
-        // Extract build (e.g., "Physical Post Point Forward Build")
-        const buildMatch = text.match(/(\w+\s+\w+(?:\s+\w+)?)\s+Build/);
-        if (buildMatch) {
-          details.build = buildMatch[1];
+        // Extract archetype (e.g., "Archetype: Speedy Blow-By Ace")
+        if (text.includes('Archetype:')) {
+          const archetypeMatch = text.match(/Archetype:\s*(.+?)(?:\n|$)/);
+          if (archetypeMatch) {
+            details.archetype = archetypeMatch[1].trim();
+          }
+        }
+
+        // Extract build (e.g., "has a Crafty Sharpshooter Build")
+        if (!details.archetype && text.includes('Build')) {
+          const buildMatch = text.match(/has a (.+?)\s+Build/);
+          if (buildMatch) {
+            details.archetype = buildMatch[1].trim();
+          }
         }
 
         // Extract position from paragraph (e.g., "Position: SF / SG")
@@ -192,11 +202,11 @@ export async function scrapePlayerDetails(page, basicPlayer) {
     // Merge with basic player data
     const enhancedPlayer = {
       ...basicPlayer,
-      position: playerDetails.position || basicPlayer.position,
+      positions: playerDetails.positions,
       height: playerDetails.height,
       weight: playerDetails.weight,
       wingspan: playerDetails.wingspan,
-      build: playerDetails.build,
+      archetype: playerDetails.archetype,
       playerImage: playerDetails.playerImage,
       attributes: playerDetails.attributes,
       badges: playerDetails.badges,
