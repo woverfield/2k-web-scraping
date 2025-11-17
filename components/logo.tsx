@@ -1,4 +1,6 @@
 import type React from "react";
+import { Icon } from "lucide-react";
+import { basketball } from "@lucide/lab";
 
 export const LogoIcon = (props: React.ComponentProps<"svg">) => (
   <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
@@ -13,7 +15,8 @@ export const LogoIcon = (props: React.ComponentProps<"svg">) => (
 );
 
 export const Logo = (props: React.ComponentProps<"span">) => (
-  <span className="text-lg font-semibold" {...props}>
+  <span className="flex flex-row items-center gap-2 text-lg font-semibold" {...props}>
+    <Icon iconNode={basketball} className="h-4 w-4" />
     nba2k-api
   </span>
 );

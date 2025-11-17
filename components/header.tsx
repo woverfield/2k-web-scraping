@@ -6,7 +6,8 @@ import { MenuToggleIcon } from "@/components/menu-toggle-icon";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useScroll } from "@/hooks/use-scroll";
 import { cn } from "@/lib/utils";
-import { Github } from "lucide-react";
+import { Github, Icon } from "lucide-react";
+import { basketball } from "@lucide/lab";
 
 export function Header() {
   const [open, setOpen] = React.useState(false);

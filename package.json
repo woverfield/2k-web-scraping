@@ -28,6 +28,7 @@
   "license": "MIT",
   "dependencies": {
     "@hono/zod-validator": "^0.7.4",
+    "@lucide/lab": "^0.1.2",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-progress": "^1.1.8",
