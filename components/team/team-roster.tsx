@@ -123,7 +123,7 @@ export function TeamRoster({ players, teamType, className }: TeamRosterProps) {
             {sortedPlayers.map((player, index) => (
               <motion.div key={player._id} variants={staggerItem}>
                 <a
-                  href={`/players/${player.slug}?type=${teamType}&ref=team`}
+                  href={`/players/${player.slug}?type=${teamType}&team=${encodeURIComponent(player.team)}`}
                   className="block"
                 >
                   <Card className="h-full transition-all hover:shadow-md hover:border-primary/50 cursor-pointer">

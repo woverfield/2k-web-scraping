@@ -113,7 +113,7 @@ export function TeamHeader({
                 className="shrink-0 lg:w-64"
               >
                 <a
-                  href={`/players/${topPlayer.slug}?type=${teamType}&ref=team`}
+                  href={`/players/${topPlayer.slug}?type=${teamType}&team=${encodeURIComponent(team)}`}
                   className="block"
                 >
                   <Card className="transition-all hover:shadow-lg hover:border-primary/50">

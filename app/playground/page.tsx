@@ -300,7 +300,7 @@ function PlaygroundContent() {
                 {players.map((player) => (
                   <motion.div key={player._id} variants={staggerItem}>
                     <Link
-                      href={`/players/${player.slug}?type=${player.teamType}&ref=playground`}
+                      href={`/players/${player.slug}?type=${player.teamType}&team=${encodeURIComponent(player.team)}`}
                       prefetch={true}
                     >
                       <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50 cursor-pointer">

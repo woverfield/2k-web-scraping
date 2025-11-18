@@ -216,9 +216,9 @@ print(data['data'])  # Array of top 10 current players rated 90+`,
           <ul className="space-y-2 text-slate-600 dark:text-slate-400">
             <li>
               <code className="mr-2 rounded bg-white px-1.5 py-0.5 text-sm dark:bg-slate-950">
-                GET /api/players/:slug
+                GET /api/players/slug/:slug
               </code>
-              - Get a single player by slug
+              - Get a single player by slug (use <code className="text-xs">?teamType=class&team=Team Name</code> for players on multiple teams)
             </li>
             <li>
               <code className="mr-2 rounded bg-white px-1.5 py-0.5 text-sm dark:bg-slate-950">

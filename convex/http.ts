@@ -474,15 +474,19 @@ app.get("/api/players/slug/:slug",
   authMiddleware,
   zValidator("query", z.object({
     teamType: z.enum(["curr", "class", "allt"]).optional(),
+    team: z.string().optional(),
   })),
   async (c) => {
     try {
       const slug = c.req.param("slug");
-      const { teamType } = c.req.valid("query");
+      const { teamType, team } = c.req.valid("query");
 
       const playerArgs: any = { slug };
       if (teamType !== undefined) {
         playerArgs.teamType = teamType;
+      }
+      if (team !== undefined) {
+        playerArgs.team = team;
       }
 
       const player = await c.env.runQuery(api.players.getPlayerBySlug, playerArgs);
@@ -491,7 +495,7 @@ app.get("/api/players/slug/:slug",
         return c.json(errorResponse(
           "Player not found",
           "NOT_FOUND",
-          { slug, teamType }
+          { slug, teamType, team }
         ), 404);
       }
 

@@ -40,11 +40,13 @@ export default function PlayerPage() {
   const searchParams = useSearchParams();
   const slug = params.slug as string;
   const type = searchParams.get("type") as "curr" | "class" | "allt" | null;
+  const team = searchParams.get("team"); // Specific team for players on multiple teams
   const ref = searchParams.get("ref"); // Track where user came from
 
   const player = useQuery(api.players.getPlayerBySlug, {
     slug,
     teamType: type || undefined,
+    team: team || undefined,
   });
 
   // Loading state

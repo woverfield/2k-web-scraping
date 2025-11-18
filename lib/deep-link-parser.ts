@@ -25,8 +25,13 @@ export function parseEndpointToDeepLink(endpoint: string): DeepLink {
     if (playerSlugMatch) {
       const slug = playerSlugMatch[1];
       const type = params.get("teamType") || "curr";
+      const team = params.get("team");
+      let href = `/players/${slug}?type=${type}`;
+      if (team) {
+        href += `&team=${encodeURIComponent(team)}`;
+      }
       return {
-        href: `/players/${slug}?type=${type}`,
+        href,
         label: "View Player",
         available: true,
       };

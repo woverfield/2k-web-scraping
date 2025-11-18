@@ -35,7 +35,7 @@ export default function QuickstartPage() {
           <LanguageTabs
             examples={{
               javascript: `const response = await fetch(
-  'https://canny-kingfisher-472.convex.site/api/players/lebron-james',
+  'https://canny-kingfisher-472.convex.site/api/players/slug/lebron-james',
   {
     headers: {
       'X-API-Key': 'your_api_key_here'
@@ -46,28 +46,37 @@ export default function QuickstartPage() {
 const data = await response.json();
 
 if (data.success) {
-  console.log(data.data.name);          // "LeBron James"
-  console.log(data.data.overallRating);  // 97
-  console.log(data.data.position);       // "SF"
-  console.log(data.data.team);           // "Los Angeles Lakers"
-}`,
+  console.log(data.data.name);     // "LeBron James"
+  console.log(data.data.overall);  // 97
+  console.log(data.data.positions); // ["SF", "PF"]
+  console.log(data.data.team);     // "Los Angeles Lakers"
+}
+
+// For players on multiple teams (like Michael Jordan), use team param:
+// /api/players/slug/michael-jordan?teamType=class&team='95-'96 Bulls`,
               python: `import requests
 
 response = requests.get(
-    'https://canny-kingfisher-472.convex.site/api/players/lebron-james',
+    'https://canny-kingfisher-472.convex.site/api/players/slug/lebron-james',
     headers={'X-API-Key': 'your_api_key_here'}
 )
 
 data = response.json()
 
 if data['success']:
-    print(data['data']['name'])          # "LeBron James"
-    print(data['data']['overallRating'])  # 97
-    print(data['data']['position'])       # "SF"
-    print(data['data']['team'])           # "Los Angeles Lakers"`,
+    print(data['data']['name'])     # "LeBron James"
+    print(data['data']['overall'])  # 97
+    print(data['data']['positions']) # ["SF", "PF"]
+    print(data['data']['team'])     # "Los Angeles Lakers"
+
+# For players on multiple teams, add team param:
+# ?teamType=class&team='95-'96 Bulls`,
               curl: `curl -X GET \\
-  'https://canny-kingfisher-472.convex.site/api/players/lebron-james' \\
-  -H 'X-API-Key: your_api_key_here'`,
+  'https://canny-kingfisher-472.convex.site/api/players/slug/lebron-james' \\
+  -H 'X-API-Key: your_api_key_here'
+
+# For players on multiple teams (like Michael Jordan):
+# Add ?teamType=class&team='95-'96 Bulls`,
             }}
           />
         </div>

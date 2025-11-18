@@ -192,10 +192,16 @@ Get a specific player by slug (human-readable identifier).
 
 **Query Parameters:**
 - `teamType` (optional): Filter by team type (curr, class, allt) if player appears on multiple teams
+- `team` (optional): Filter by specific team name (for players on multiple teams like Michael Jordan on different Bulls squads)
 
 **Example:**
 ```bash
+# Get current player
 curl 'https://canny-kingfisher-472.convex.site/api/players/slug/bronny-james' \
+  -H 'X-API-Key: your_api_key_here'
+
+# Get specific version of player on multiple teams
+curl 'https://canny-kingfisher-472.convex.site/api/players/slug/michael-jordan?teamType=class&team=%2795-%2796%20Bulls' \
   -H 'X-API-Key: your_api_key_here'
 ```
 

@@ -206,6 +206,7 @@ export const getPlayerBySlug = query({
   args: {
     slug: v.string(),
     teamType: v.optional(v.union(v.literal("curr"), v.literal("class"), v.literal("allt"))),
+    team: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     let query = ctx.db
@@ -217,6 +218,11 @@ export const getPlayerBySlug = query({
     // Filter by team type if specified
     if (args.teamType) {
       players = players.filter((p) => p.teamType === args.teamType);
+    }
+
+    // Filter by team if specified (for players on multiple teams like MJ on different Bulls squads)
+    if (args.team) {
+      players = players.filter((p) => p.team === args.team);
     }
 
     // Return first match
