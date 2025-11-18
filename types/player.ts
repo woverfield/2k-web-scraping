@@ -82,6 +82,7 @@ export interface Player {
   weight?: string;
   wingspan?: string;
   archetype?: string;
+  build?: string;
   jerseyNumber?: string;
   age?: number;
 

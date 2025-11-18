@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Suspense } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
@@ -27,6 +28,26 @@ import { FilterSheet } from "@/components/playground/filter-sheet";
 const ITEMS_PER_PAGE = 24;
 
 export default function PlaygroundPage() {
+  return (
+    <Suspense fallback={<PlaygroundLoading />}>
+      <PlaygroundContent />
+    </Suspense>
+  );
+}
+
+function PlaygroundLoading() {
+  return (
+    <div className="container py-8">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <LoadingCard key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PlaygroundContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -146,7 +167,7 @@ export default function PlaygroundPage() {
   };
 
   const hasActiveFilters =
-    search ||
+    !!search ||
     selectedTeams.length > 0 ||
     selectedPositions.length > 0 ||
     overallRange[0] !== 0 ||
