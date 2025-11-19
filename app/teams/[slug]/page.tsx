@@ -14,7 +14,12 @@ import {
 } from "@/components/ui/breadcrumb";
 import { TeamHeader } from "@/components/team/team-header";
 import { TeamRoster } from "@/components/team/team-roster";
-import { TeamStats } from "@/components/team/team-stats";
+import {
+  TeamStats,
+  TeamAttributeAverages,
+  TeamBadgeDistribution,
+  TeamRatingDistribution,
+} from "@/components/team/team-stats";
 import { AnimatedContainer } from "@/components/ui/animated-container";
 import { LoadingCard } from "@/components/ui/loading-card";
 
@@ -147,11 +152,29 @@ export default function TeamDetailPage() {
         </div>
 
         {/* Team Stats - Takes 1/3 width */}
-        <div>
+        <div className="space-y-6">
           <AnimatedContainer variant="slide" delay={0.15}>
             <TeamStats
               positionDistribution={teamStats.positionDistribution}
               playerCount={teamStats.playerCount}
+            />
+          </AnimatedContainer>
+
+          <AnimatedContainer variant="slide" delay={0.2}>
+            <TeamAttributeAverages
+              attributeAverages={teamStats.attributeAverages}
+            />
+          </AnimatedContainer>
+
+          <AnimatedContainer variant="slide" delay={0.25}>
+            <TeamBadgeDistribution
+              badgeStats={teamStats.badgeStats}
+            />
+          </AnimatedContainer>
+
+          <AnimatedContainer variant="slide" delay={0.3}>
+            <TeamRatingDistribution
+              players={roster}
             />
           </AnimatedContainer>
         </div>
