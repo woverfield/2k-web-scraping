@@ -46,10 +46,10 @@ export default function QuickstartPage() {
 const data = await response.json();
 
 if (data.success) {
-  console.log(data.data.name);     // "LeBron James"
-  console.log(data.data.overall);  // 97
+  console.log(data.data.name);      // "LeBron James"
+  console.log(data.data.overall);   // 97
   console.log(data.data.positions); // ["SF", "PF"]
-  console.log(data.data.team);     // "Los Angeles Lakers"
+  console.log(data.data.team);      // "Los Angeles Lakers"
 }
 
 // For players on multiple teams (like Michael Jordan), use team param:
@@ -96,12 +96,12 @@ if data['success']:
     "slug": "lebron-james",
     "team": "Los Angeles Lakers",
     "teamType": "curr",
-    "overallRating": 97,
-    "position": "SF",
+    "overall": 97,
+    "positions": ["SF", "PF"],
     "height": "6'9\\"",
     "weight": "250 lbs",
     "playerImage": "https://...",
-    "teamImage": "https://...",
+    "teamImg": "https://...",
     // Detailed attributes
     "closeShot": 92,
     "midRangeShot": 88,

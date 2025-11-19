@@ -89,22 +89,42 @@ export default function ErrorsPage() {
           <h2 className="mb-3 text-2xl font-bold">Common Error Codes</h2>
           <div className="space-y-4">
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
-              <h4 className="mb-2 font-mono text-sm font-semibold">INVALID_API_KEY</h4>
+              <h4 className="mb-2 font-mono text-sm font-semibold">MISSING_API_KEY</h4>
               <p className="mb-3 text-sm text-slate-600 dark:text-slate-400">
-                The provided API key is invalid, expired, or missing.
+                No API key was provided in the request headers.
               </p>
               <CodeBlock
                 code={`{
   "success": false,
   "error": {
-    "message": "Invalid or missing API key",
+    "message": "API key is required",
+    "code": "MISSING_API_KEY"
+  }
+}`}
+                language="json"
+              />
+              <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+                <strong>Solution:</strong> Include your API key in the X-API-Key header.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+              <h4 className="mb-2 font-mono text-sm font-semibold">INVALID_API_KEY</h4>
+              <p className="mb-3 text-sm text-slate-600 dark:text-slate-400">
+                The provided API key is invalid or expired.
+              </p>
+              <CodeBlock
+                code={`{
+  "success": false,
+  "error": {
+    "message": "Invalid API key",
     "code": "INVALID_API_KEY"
   }
 }`}
                 language="json"
               />
               <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
-                <strong>Solution:</strong> Check that your API key is correct and included in the X-API-Key header.
+                <strong>Solution:</strong> Verify your API key is correct in your dashboard.
               </p>
             </div>
 
@@ -193,11 +213,12 @@ if (!response.ok) {
 
   // Handle specific error codes
   switch (error.error.code) {
-    case 'RATE_LIMIT_EXCEEDED':
-      // Wait and retry
-      break;
+    case 'MISSING_API_KEY':
     case 'INVALID_API_KEY':
       // Update credentials
+      break;
+    case 'RATE_LIMIT_EXCEEDED':
+      // Wait and retry
       break;
     case 'PLAYER_NOT_FOUND':
       // Show not found message

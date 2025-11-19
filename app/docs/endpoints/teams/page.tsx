@@ -27,7 +27,7 @@ export default function TeamsEndpointPage() {
         <div className="mt-4 flex gap-3">
           <TryItLiveButton href="/teams" label="Browse All Teams" />
           <TryItLiveButton
-            href="/teams?type=class"
+            href="/teams?teamType=class"
             label="View Classic Teams"
             variant="secondary"
           />

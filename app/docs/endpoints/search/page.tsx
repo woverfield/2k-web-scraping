@@ -66,7 +66,7 @@ export default function SearchEndpointPage() {
                   <TableCell className="font-mono text-sm">limit</TableCell>
                   <TableCell>number</TableCell>
                   <TableCell>Maximum results to return (max 50)</TableCell>
-                  <TableCell>No (default: 10)</TableCell>
+                  <TableCell>No (default: 50)</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -117,14 +117,18 @@ print(data['data'])  # Array of matching players`,
       "slug": "lebron-james",
       "team": "Los Angeles Lakers",
       "teamType": "curr",
-      "overallRating": 97,
-      "position": "SF",
+      "overall": 97,
+      "positions": ["SF", "PF"],
       "playerImage": "https://...",
-      "relevance": 1.0
+      "teamImg": "https://..."
     }
   ],
-  "query": "lebron",
-  "count": 1
+  "meta": {
+    "count": 1,
+    "total": 1,
+    "truncated": false,
+    "timestamp": "2025-01-15T00:00:00.000Z"
+  }
 }`}
             language="json"
           />

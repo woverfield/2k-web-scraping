@@ -140,10 +140,20 @@ api_key = os.getenv('NBA2K_API_KEY')`}
             If authentication fails, you'll receive a 401 Unauthorized response:
           </p>
           <CodeBlock
-            code={`{
+            code={`// Missing API key
+{
   "success": false,
   "error": {
-    "message": "Invalid or missing API key",
+    "message": "API key is required",
+    "code": "MISSING_API_KEY"
+  }
+}
+
+// Invalid API key
+{
+  "success": false,
+  "error": {
+    "message": "Invalid API key",
     "code": "INVALID_API_KEY"
   }
 }`}

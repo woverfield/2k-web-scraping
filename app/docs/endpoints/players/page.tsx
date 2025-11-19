@@ -77,12 +77,24 @@ export default function PlayersEndpointPage() {
                   <TableCell>-</TableCell>
                 </TableRow>
                 <TableRow>
+                  <TableCell className="font-mono text-sm">maxRating</TableCell>
+                  <TableCell>number</TableCell>
+                  <TableCell>Maximum overall rating (0-99)</TableCell>
+                  <TableCell>-</TableCell>
+                </TableRow>
+                <TableRow>
                   <TableCell className="font-mono text-sm">limit</TableCell>
                   <TableCell>number</TableCell>
                   <TableCell>Number of results to return (max 100)</TableCell>
                   <TableCell>
                     <code className="text-sm">50</code>
                   </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-mono text-sm">cursor</TableCell>
+                  <TableCell>string</TableCell>
+                  <TableCell>Pagination cursor from previous response</TableCell>
+                  <TableCell>-</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -137,12 +149,12 @@ print(data['data'])  # Array of top 10 current players rated 90+`,
       "slug": "lebron-james",
       "team": "Los Angeles Lakers",
       "teamType": "curr",
-      "overallRating": 97,
-      "position": "SF",
+      "overall": 97,
+      "positions": ["SF", "PF"],
       "height": "6'9\\"",
       "weight": "250 lbs",
       "playerImage": "https://...",
-      "teamImage": "https://...",
+      "teamImg": "https://...",
       "closeShot": 92,
       "midRangeShot": 88,
       "threePointShot": 44,
@@ -155,9 +167,13 @@ print(data['data'])  # Array of top 10 current players rated 90+`,
     // ... more players
   ],
   "pagination": {
-    "total": 150,
+    "hasMore": true,
+    "nextCursor": "abc123",
     "count": 10,
     "limit": 10
+  },
+  "meta": {
+    "timestamp": "2025-01-15T00:00:00.000Z"
   }
 }`}
             language="json"
@@ -192,14 +208,14 @@ print(data['data'])  # Array of top 10 current players rated 90+`,
                   <TableCell>URL-friendly identifier (e.g., "lebron-james")</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell className="font-mono text-sm">overallRating</TableCell>
+                  <TableCell className="font-mono text-sm">overall</TableCell>
                   <TableCell>number</TableCell>
                   <TableCell>Overall player rating (0-99)</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell className="font-mono text-sm">position</TableCell>
-                  <TableCell>string</TableCell>
-                  <TableCell>Player position (PG, SG, SF, PF, C)</TableCell>
+                  <TableCell className="font-mono text-sm">positions</TableCell>
+                  <TableCell>string[]</TableCell>
+                  <TableCell>Player positions (PG, SG, SF, PF, C)</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell className="font-mono text-sm">team</TableCell>

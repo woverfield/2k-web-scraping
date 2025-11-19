@@ -144,14 +144,15 @@ X-API-Key: your_api_key_here
 Get all players with optional filters.
 
 **Query Parameters:**
-- `search` (string): Search by player name
-- `team` (string): Filter by team slug
+- `team` (string): Filter by team name
 - `teamType` (string): Filter by team type (curr, class, allt)
 - `position` (string): Filter by position (PG, SG, SF, PF, C)
 - `minRating` (number): Minimum overall rating
 - `maxRating` (number): Maximum overall rating
 - `limit` (number): Results per page (default: 50, max: 100)
-- `offset` (number): Pagination offset
+- `cursor` (string): Pagination cursor from previous response
+
+> **Note:** For searching by player name, use `/api/players/search?q=name` instead.
 
 **Example:**
 ```bash
@@ -178,10 +179,10 @@ curl 'https://canny-kingfisher-472.convex.site/api/players?position=PG&minRating
     }
   ],
   "pagination": {
-    "total": 42,
-    "limit": 50,
-    "offset": 0,
-    "hasMore": false
+    "hasMore": false,
+    "nextCursor": null,
+    "count": 42,
+    "limit": 50
   }
 }
 ```
@@ -277,8 +278,10 @@ Get database statistics (no auth required).
 ```json
 {
   "success": false,
-  "error": "Error message",
-  "code": "ERROR_CODE"
+  "error": {
+    "message": "Error message",
+    "code": "ERROR_CODE"
+  }
 }
 ```
 
@@ -286,8 +289,8 @@ Get database statistics (no auth required).
 - `MISSING_API_KEY`: No API key provided
 - `INVALID_API_KEY`: Invalid or expired API key
 - `RATE_LIMIT_EXCEEDED`: Too many requests
-- `NOT_FOUND`: Resource not found
-- `VALIDATION_ERROR`: Invalid parameters
+- `PLAYER_NOT_FOUND`: Player not found
+- `INVALID_PARAMETERS`: Invalid query parameters
 
 ## Project Structure
 
