@@ -82,8 +82,13 @@ function PlaygroundContent() {
 
   // Fetch available teams for current team type
   const teamsData = useQuery(api.teams.getAllTeams, { teamType });
-  const availableTeams = React.useMemo(
-    () => (teamsData || []).map((t) => t.name).sort(),
+  const teams = React.useMemo(
+    () => (teamsData || []).map((t) => ({
+      name: t.name,
+      logo: t.logo,
+      playerCount: t.playerCount,
+      avgRating: t.avgRating,
+    })).sort((a, b) => a.name.localeCompare(b.name)),
     [teamsData]
   );
 
@@ -155,6 +160,11 @@ function PlaygroundContent() {
     );
   };
 
+  // Clear all selected teams
+  const clearTeams = () => {
+    setSelectedTeams([]);
+  };
+
   // Clear all filters
   const clearFilters = () => {
     setSearch("");
@@ -201,9 +211,10 @@ function PlaygroundContent() {
           setSearch={setSearch}
           teamType={teamType}
           setTeamType={setTeamType}
-          availableTeams={availableTeams}
+          teams={teams}
           selectedTeams={selectedTeams}
           toggleTeam={toggleTeam}
+          clearTeams={clearTeams}
           selectedPositions={selectedPositions}
           togglePosition={togglePosition}
           overallRange={overallRange}
@@ -231,9 +242,10 @@ function PlaygroundContent() {
                 setSearch={setSearch}
                 teamType={teamType}
                 setTeamType={setTeamType}
-                availableTeams={availableTeams}
+                teams={teams}
                 selectedTeams={selectedTeams}
                 toggleTeam={toggleTeam}
+                clearTeams={clearTeams}
                 selectedPositions={selectedPositions}
                 togglePosition={togglePosition}
                 overallRange={overallRange}
@@ -307,18 +319,18 @@ function PlaygroundContent() {
                         <CardContent className="p-4">
                           <div className="flex items-start gap-3">
                             {/* Player Image */}
-                            <div className="relative h-16 w-16 shrink-0 rounded-lg overflow-hidden bg-muted">
+                            <div className="relative h-24 w-24 shrink-0 rounded-lg overflow-hidden bg-muted">
                               {player.playerImage ? (
                                 <Image
                                   src={player.playerImage}
                                   alt={player.name}
                                   fill
-                                  sizes="64px"
+                                  sizes="96px"
                                   className="object-cover"
                                 />
                               ) : (
                                 <div className="flex h-full w-full items-center justify-center">
-                                  <User className="h-10 w-10 text-muted-foreground" />
+                                  <User className="h-12 w-12 text-muted-foreground" />
                                 </div>
                               )}
                             </div>

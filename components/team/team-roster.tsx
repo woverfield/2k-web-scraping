@@ -130,17 +130,18 @@ export function TeamRoster({ players, teamType, className }: TeamRosterProps) {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
                         {/* Player Image */}
-                        <div className="relative h-14 w-14 shrink-0 rounded-lg overflow-hidden bg-muted">
+                        <div className="relative h-20 w-20 shrink-0 rounded-lg overflow-hidden bg-muted">
                           {player.playerImage ? (
                             <Image
                               src={player.playerImage}
                               alt={player.name}
                               fill
+                              sizes="80px"
                               className="object-cover"
                             />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center">
-                              <User className="h-8 w-8 text-muted-foreground" />
+                              <User className="h-10 w-10 text-muted-foreground" />
                             </div>
                           )}
                         </div>
