@@ -117,7 +117,7 @@ export function TeamHeader({
                   className="block"
                 >
                   <Card className="transition-all hover:shadow-lg hover:border-primary/50">
-                    <CardContent className="p-4">
+                    <CardContent className="">
                       <div className="flex items-center gap-1 mb-3">
                         <Trophy className="h-4 w-4 text-yellow-500" />
                         <h3 className="text-sm font-semibold text-muted-foreground">
