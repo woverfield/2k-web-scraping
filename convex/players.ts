@@ -470,3 +470,36 @@ export const getAllFiltered = query({
     };
   },
 });
+
+/**
+ * Get multiple players by their slugs (for lineup builder)
+ */
+export const getPlayersBySlugs = query({
+  args: {
+    slugs: v.array(v.string()),
+    teamType: v.optional(v.union(v.literal("curr"), v.literal("class"), v.literal("allt"))),
+  },
+  handler: async (ctx, args) => {
+    if (args.slugs.length === 0) return [];
+
+    const players = [];
+
+    for (const slug of args.slugs) {
+      let query = ctx.db
+        .query("players")
+        .withIndex("by_slug", (q) => q.eq("slug", slug));
+
+      let results = await query.collect();
+
+      // Filter by team type if specified
+      if (args.teamType) {
+        results = results.filter((p) => p.teamType === args.teamType);
+      }
+
+      // Add ALL matches for this slug (not just first) to support multiple versions
+      players.push(...results);
+    }
+
+    return players;
+  },
+});
