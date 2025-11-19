@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useScroll } from "@/hooks/use-scroll";
 import { cn } from "@/lib/utils";
-import { Github, SlidersHorizontal, Users, ChevronDown } from "lucide-react";
+import { Github, SlidersHorizontal, Users, ChevronDown, LayoutGrid } from "lucide-react";
 import { basketball } from "@lucide/lab";
 
 export function Header() {
@@ -38,6 +38,12 @@ export function Header() {
       href: "/teams",
       icon: Users,
       description: "View team rosters and stats",
+    },
+    {
+      label: "Lineups",
+      href: "/lineups",
+      icon: LayoutGrid,
+      description: "Build and compare lineups",
     },
   ];
 

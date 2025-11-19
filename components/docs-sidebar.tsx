@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { ChevronRight } from "lucide-react";
 
 interface DocLink {
   title: string;
@@ -38,18 +37,12 @@ export function DocsSidebar({ sections }: DocsSidebarProps) {
                     <Link
                       href={item.href}
                       className={cn(
-                        "group flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-slate-100 dark:hover:bg-slate-800",
+                        "block rounded-md px-3 py-2 text-sm transition-colors hover:bg-slate-100 dark:hover:bg-slate-800",
                         isActive
                           ? "bg-slate-100 font-medium text-slate-900 dark:bg-slate-800 dark:text-slate-100"
                           : "text-slate-600 dark:text-slate-400"
                       )}
                     >
-                      <ChevronRight
-                        className={cn(
-                          "h-4 w-4 transition-transform",
-                          isActive && "rotate-90"
-                        )}
-                      />
                       {item.title}
                     </Link>
                   </li>
