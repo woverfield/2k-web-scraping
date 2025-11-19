@@ -6,19 +6,28 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { TeamSelectorModal } from "@/components/playground/team-selector-modal";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import type { TeamType } from "@/types/player";
 
 const POSITIONS = ["PG", "SG", "SF", "PF", "C"];
+
+interface Team {
+  name: string;
+  logo: string;
+  playerCount?: number;
+  avgRating?: number;
+}
 
 interface FilterPanelProps {
   search: string;
   setSearch: (value: string) => void;
   teamType: TeamType;
   setTeamType: (value: TeamType) => void;
-  availableTeams: string[];
+  teams: Team[];
   selectedTeams: string[];
   toggleTeam: (team: string) => void;
+  clearTeams: () => void;
   selectedPositions: string[];
   togglePosition: (position: string) => void;
   overallRange: [number, number];
@@ -35,9 +44,10 @@ export const FilterPanel = React.memo(function FilterPanel({
   setSearch,
   teamType,
   setTeamType,
-  availableTeams,
+  teams,
   selectedTeams,
   toggleTeam,
+  clearTeams,
   selectedPositions,
   togglePosition,
   overallRange,
@@ -98,30 +108,15 @@ export const FilterPanel = React.memo(function FilterPanel({
         </Tabs>
       </div>
 
-      {/* Teams Multi-Select */}
+      {/* Teams Selector */}
       <div className="space-y-2">
         <label className="text-sm font-medium">Teams</label>
-        <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto" role="group" aria-label="Filter by team">
-          {availableTeams.map((team) => (
-            <Badge
-              key={team}
-              variant={selectedTeams.includes(team) ? "default" : "outline"}
-              className="cursor-pointer text-xs"
-              onClick={() => toggleTeam(team)}
-              role="checkbox"
-              aria-checked={selectedTeams.includes(team)}
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  toggleTeam(team);
-                }
-              }}
-            >
-              {team}
-            </Badge>
-          ))}
-        </div>
+        <TeamSelectorModal
+          teams={teams}
+          selectedTeams={selectedTeams}
+          onToggleTeam={toggleTeam}
+          onClearTeams={clearTeams}
+        />
       </div>
 
       {/* Positions */}
