@@ -96,12 +96,12 @@ export function PlayerHeader({ player, rankings, className }: PlayerHeaderProps)
             {(player.archetype || player.build) && (
               <div className="flex flex-wrap gap-2">
                 {player.archetype && (
-                  <div className="rounded-md bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                  <div className="rounded-md bg-muted px-3 py-1 text-sm font-medium text-foreground">
                     {player.archetype}
                   </div>
                 )}
                 {player.build && (
-                  <div className="rounded-md bg-muted px-3 py-1 text-sm font-medium">
+                  <div className="rounded-md bg-muted px-3 py-1 text-sm font-medium text-foreground">
                     {player.build}
                   </div>
                 )}

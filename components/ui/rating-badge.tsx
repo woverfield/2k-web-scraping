@@ -39,7 +39,7 @@ export function RatingBadge({
       )}
     >
       <span className="font-bold tabular-nums">{rating}</span>
-      {tier && <span className="ml-1.5 font-normal opacity-80">· {tier}</span>}
+      {tier && <span className="ml-1.5 font-bold opacity-100">· {tier}</span>}
     </Badge>
   );
 }

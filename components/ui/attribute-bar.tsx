@@ -81,10 +81,9 @@ export function AttributeBar({
         {/* Position Average Line Marker */}
         {avgPercentage !== undefined && (
           <motion.div
-            className="absolute top-0 bottom-0 w-0.5 pointer-events-none"
+            className="absolute top-0 bottom-0 w-0.5 pointer-events-none bg-slate-600 dark:bg-white"
             style={{
               left: `${avgPercentage}%`,
-              backgroundColor: 'white',
               transform: 'translateX(-50%)',
             }}
             initial={{ opacity: 0.4 }}

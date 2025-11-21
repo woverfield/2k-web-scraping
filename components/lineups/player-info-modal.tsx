@@ -218,10 +218,15 @@ export function PlayerInfoModal({ player, open, onOpenChange }: PlayerInfoModalP
                     {pos}
                   </Badge>
                 ))}
-                {(player.archetype || player.build) && (
-                  <span className="text-xs text-muted-foreground">
-                    {player.archetype || player.build}
-                  </span>
+                {player.archetype && (
+                  <Badge variant="secondary" className="text-xs">
+                    {player.archetype}
+                  </Badge>
+                )}
+                {player.build && (
+                  <Badge variant="secondary" className="text-xs">
+                    {player.build}
+                  </Badge>
                 )}
               </div>
 
