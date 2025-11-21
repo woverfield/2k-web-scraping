@@ -50,27 +50,27 @@ This project provides:
 
 ### 1. API Usage
 
-Get your free API key at [https://canny-kingfisher-472.convex.site](https://canny-kingfisher-472.convex.site)
+Get your free API key at [https://api.nba2kapi.com](https://api.nba2kapi.com)
 
 ```bash
 # Search for players
-curl 'https://canny-kingfisher-472.convex.site/api/players?search=james' \
+curl 'https://api.nba2kapi.com/api/players?search=james' \
   -H 'X-API-Key: your_api_key_here'
 
 # Get player by slug (user-friendly)
-curl 'https://canny-kingfisher-472.convex.site/api/players/slug/bronny-james' \
+curl 'https://api.nba2kapi.com/api/players/slug/bronny-james' \
   -H 'X-API-Key: your_api_key_here'
 
 # Get team roster
-curl 'https://canny-kingfisher-472.convex.site/api/teams/Los%20Angeles%20Lakers/roster' \
+curl 'https://api.nba2kapi.com/api/teams/Los%20Angeles%20Lakers/roster' \
   -H 'X-API-Key: your_api_key_here'
 
 # Get all players (paginated)
-curl 'https://canny-kingfisher-472.convex.site/api/players?limit=50&teamType=curr' \
+curl 'https://api.nba2kapi.com/api/players?limit=50&teamType=curr' \
   -H 'X-API-Key: your_api_key_here'
 
 # Get database stats (no auth required)
-curl 'https://canny-kingfisher-472.convex.site/api/stats'
+curl 'https://api.nba2kapi.com/api/stats'
 ```
 
 ### 2. Local Development
@@ -169,7 +169,7 @@ Get all players with optional filters.
 
 **Example:**
 ```bash
-curl 'https://canny-kingfisher-472.convex.site/api/players?position=PG&minRating=85' \
+curl 'https://api.nba2kapi.com/api/players?position=PG&minRating=85' \
   -H 'X-API-Key: your_api_key_here'
 ```
 
@@ -211,11 +211,11 @@ Get a specific player by slug (human-readable identifier).
 **Example:**
 ```bash
 # Get current player
-curl 'https://canny-kingfisher-472.convex.site/api/players/slug/bronny-james' \
+curl 'https://api.nba2kapi.com/api/players/slug/bronny-james' \
   -H 'X-API-Key: your_api_key_here'
 
 # Get specific version of player on multiple teams
-curl 'https://canny-kingfisher-472.convex.site/api/players/slug/michael-jordan?teamType=class&team=%2795-%2796%20Bulls' \
+curl 'https://api.nba2kapi.com/api/players/slug/michael-jordan?teamType=class&team=%2795-%2796%20Bulls' \
   -H 'X-API-Key: your_api_key_here'
 ```
 
@@ -253,7 +253,7 @@ Get a specific player by Convex database ID (for advanced use).
 
 **Example:**
 ```bash
-curl 'https://canny-kingfisher-472.convex.site/api/players/j97abc123...' \
+curl 'https://api.nba2kapi.com/api/players/j97abc123...' \
   -H 'X-API-Key: your_api_key_here'
 ```
 
@@ -266,7 +266,7 @@ Get a team roster by team name.
 
 **Example:**
 ```bash
-curl 'https://canny-kingfisher-472.convex.site/api/teams/Los%20Angeles%20Lakers/roster' \
+curl 'https://api.nba2kapi.com/api/teams/Los%20Angeles%20Lakers/roster' \
   -H 'X-API-Key: your_api_key_here'
 ```
 
@@ -463,7 +463,7 @@ MIT License - see LICENSE file for details
 ## Support
 
 - GitHub Issues: [Report bugs or request features](https://github.com/woverfield/nba2k-api/issues)
-- Documentation: [View full docs](https://canny-kingfisher-472.convex.site/docs)
+- Documentation: [View full docs](https://api.nba2kapi.com/docs)
 
 ## Disclaimer
 
