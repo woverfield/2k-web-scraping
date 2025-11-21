@@ -160,7 +160,7 @@ export default function DashboardPage() {
         </div>
 
         <RegistrationDialog
-          open={!apiKey || showRegistration}
+          open={showRegistration}
           onOpenChange={setShowRegistration}
           onSuccess={handleRegistrationSuccess}
         />
