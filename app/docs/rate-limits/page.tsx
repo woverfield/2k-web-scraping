@@ -67,9 +67,15 @@ X-RateLimit-Reset: 1642521600`}
             code={`{
   "success": false,
   "error": {
-    "message": "Rate limit exceeded. Try again in 45 seconds.",
+    "message": "You have exceeded your rate limit. Please try again in 45 seconds",
     "code": "RATE_LIMIT_EXCEEDED",
-    "retryAfter": 45
+    "details": {
+      "limit": 100,
+      "reset": "2025-01-15T00:45:00.000Z",
+      "retryAfter": 45,
+      "message": "You have exceeded your rate limit. Please try again in 45 seconds"
+    },
+    "timestamp": "2025-01-15T00:00:00.000Z"
   }
 }`}
             language="json"

@@ -71,13 +71,18 @@ async function authMiddleware(c: any, next: any) {
     c.header("X-RateLimit-Remaining", "0");
     c.header("X-RateLimit-Reset", rateLimit.reset || "");
 
+    // Calculate retryAfter in seconds
+    const resetTime = rateLimit.reset ? new Date(rateLimit.reset).getTime() : Date.now() + 60000;
+    const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
+
     return c.json(errorResponse(
       "Rate limit exceeded",
       "RATE_LIMIT_EXCEEDED",
       {
         limit: rateLimit.limit,
         reset: rateLimit.reset,
-        message: `You have exceeded your rate limit. Please try again after ${rateLimit.reset}`
+        retryAfter: retryAfter,
+        message: `You have exceeded your rate limit. Please try again in ${retryAfter} seconds`
       }
     ), 429);
   }
@@ -351,7 +356,7 @@ app.get("/api/admin/scrape/:jobId",
 app.get("/api/players",
   authMiddleware,
   zValidator("query", z.object({
-    teamType: z.enum(["curr", "class", "allt"]).optional(),
+    teamType: z.enum(["curr", "class", "allt"]).default("curr"),
     team: z.string().optional(),
     minRating: z.coerce.number().min(0).max(99).optional(),
     maxRating: z.coerce.number().min(0).max(99).optional(),
@@ -363,42 +368,40 @@ app.get("/api/players",
     try {
       const params = c.req.valid("query");
 
-      const result = await c.env.runQuery(api.players.getAllPlayers, {
-        paginationOpts: {
-          numItems: params.limit,
-          cursor: params.cursor || null,
-        },
+      // Calculate offset from cursor (offset-based pagination)
+      let offset = 0;
+      if (params.cursor) {
+        const parsedOffset = parseInt(params.cursor, 10);
+        if (!isNaN(parsedOffset)) {
+          offset = parsedOffset;
+        }
+      }
+
+      // Use optimized getAllFiltered which filters at database level
+      const result = await c.env.runQuery(api.players.getAllFiltered, {
+        teamType: params.teamType,
+        teams: params.team ? [params.team] : undefined,
+        minOverall: params.minRating,
+        maxOverall: params.maxRating,
+        positions: params.position ? [params.position] : undefined,
+        sortBy: "overall-desc",
+        limit: params.limit,
+        offset: offset,
       });
 
-      let filteredPage = result.page;
-
-      if (params.teamType) {
-        filteredPage = filteredPage.filter(p => p.teamType === params.teamType);
-      }
-      if (params.team) {
-        filteredPage = filteredPage.filter(p => p.team === params.team);
-      }
-      if (params.minRating !== undefined) {
-        filteredPage = filteredPage.filter(p => p.overall >= params.minRating!);
-      }
-      if (params.maxRating !== undefined) {
-        filteredPage = filteredPage.filter(p => p.overall <= params.maxRating!);
-      }
-      if (params.position) {
-        filteredPage = filteredPage.filter(p =>
-          p.positions?.includes(params.position!)
-        );
-      }
+      // Calculate next cursor
+      const nextCursor = result.hasMore ? (offset + params.limit).toString() : undefined;
 
       // Add caching headers - player data cached for 1 hour
       c.header("Cache-Control", "public, max-age=3600");
 
-      return c.json(successResponse(filteredPage, {
+      return c.json(successResponse(result.players, {
         pagination: {
-          hasMore: !result.isDone,
-          nextCursor: result.continueCursor,
-          count: filteredPage.length,
+          hasMore: result.hasMore,
+          nextCursor: nextCursor,
+          count: result.players.length,
           limit: params.limit,
+          total: result.totalCount,
         },
       }));
     } catch (error: any) {
@@ -419,7 +422,7 @@ app.get("/api/players/search",
   zValidator("query", z.object({
     q: z.string().min(1, "Search query is required").max(100, "Search query too long"),
     teamType: z.enum(["curr", "class", "allt"]).optional(),
-    limit: z.coerce.number().min(1).max(100).default(50),
+    limit: z.coerce.number().min(1).max(50).default(50),
   })),
   async (c) => {
     try {
@@ -432,6 +435,7 @@ app.get("/api/players/search",
 
       const results = await c.env.runQuery(api.players.searchPlayers, searchArgs);
 
+      // Results already limited to 50 in query, but respect user's limit if lower
       const limitedResults = results.slice(0, limit);
 
       // Add caching headers - search results cached for 5 minutes
@@ -472,7 +476,7 @@ app.get("/api/players/:id", authMiddleware, async (c) => {
     if (!player) {
       return c.json(errorResponse(
         "Player not found",
-        "NOT_FOUND",
+        "PLAYER_NOT_FOUND",
         { playerId }
       ), 404);
     }
@@ -516,7 +520,7 @@ app.get("/api/players/slug/:slug",
       if (!player) {
         return c.json(errorResponse(
           "Player not found",
-          "NOT_FOUND",
+          "PLAYER_NOT_FOUND",
           { slug, teamType, team }
         ), 404);
       }
@@ -544,18 +548,13 @@ app.get("/api/players/slug/:slug",
 app.get("/api/teams",
   authMiddleware,
   zValidator("query", z.object({
-    teamType: z.enum(["curr", "class", "allt"]).optional(),
+    teamType: z.enum(["curr", "class", "allt"]).default("curr"),
   })),
   async (c) => {
     try {
       const { teamType } = c.req.valid("query");
 
-      const teamsArgs: any = {};
-      if (teamType !== undefined) {
-        teamsArgs.teamType = teamType;
-      }
-
-      const teams = await c.env.runQuery(api.players.getTeams, teamsArgs);
+      const teams = await c.env.runQuery(api.players.getTeams, { teamType });
 
       // Add caching headers - teams list cached for 1 hour
       c.header("Cache-Control", "public, max-age=3600");
@@ -585,11 +584,11 @@ app.get("/api/teams/:teamName/roster",
       const teamName = decodeURIComponent(c.req.param("teamName"));
 
       // Validate team name
-      if (!teamName || teamName.length > 100 || teamName.length < 1) {
+      if (!teamName || teamName.length > 50 || teamName.length < 1) {
         return c.json(errorResponse(
           "Invalid team name",
           "INVALID_INPUT",
-          { message: "Team name must be between 1 and 100 characters" }
+          { message: "Team name must be between 1 and 50 characters" }
         ), 400);
       }
 
@@ -605,7 +604,7 @@ app.get("/api/teams/:teamName/roster",
       if (roster.length === 0) {
         return c.json(errorResponse(
           `No players found for team: ${teamName}`,
-          "NOT_FOUND",
+          "TEAM_NOT_FOUND",
           { teamName, teamType }
         ), 404);
       }
