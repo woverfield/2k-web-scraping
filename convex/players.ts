@@ -268,10 +268,10 @@ export const searchPlayers = query({
   handler: async (ctx, args) => {
     // Use index if teamType is provided for better performance
     let players;
-    if (args.teamType) {
+    if (args.teamType !== undefined) {
       players = await ctx.db
         .query("players")
-        .withIndex("by_teamType", (q) => q.eq("teamType", args.teamType))
+        .withIndex("by_teamType", (q) => q.eq("teamType", args.teamType!))
         .collect();
     } else {
       players = await ctx.db.query("players").collect();
@@ -300,11 +300,11 @@ export const getPlayersByTeam = query({
     let players;
 
     // Use compound index if teamType is provided for better performance
-    if (args.teamType) {
+    if (args.teamType !== undefined) {
       players = await ctx.db
         .query("players")
         .withIndex("by_team_and_type", (q) =>
-          q.eq("team", args.team).eq("teamType", args.teamType)
+          q.eq("team", args.team).eq("teamType", args.teamType!)
         )
         .collect();
     } else {
@@ -448,7 +448,7 @@ export const getAllFiltered = query({
     let players;
 
     // Optimize query based on available filters
-    if (args.teams && args.teams.length === 1 && args.teamType) {
+    if (args.teams && args.teams.length === 1 && args.teamType !== undefined) {
       // Use compound index for single team + teamType
       players = await ctx.db
         .query("players")
@@ -456,11 +456,11 @@ export const getAllFiltered = query({
           q.eq("team", args.teams![0]).eq("teamType", args.teamType!)
         )
         .collect();
-    } else if (args.teamType) {
+    } else if (args.teamType !== undefined) {
       // Use teamType index
       players = await ctx.db
         .query("players")
-        .withIndex("by_teamType", (q) => q.eq("teamType", args.teamType))
+        .withIndex("by_teamType", (q) => q.eq("teamType", args.teamType!))
         .collect();
     } else if (args.teams && args.teams.length === 1) {
       // Use team index for single team

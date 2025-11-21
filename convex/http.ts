@@ -377,17 +377,21 @@ app.get("/api/players",
         }
       }
 
-      // Use optimized getAllFiltered which filters at database level
-      const result = await c.env.runQuery(api.players.getAllFiltered, {
+      // Build query args, only including defined values
+      const queryArgs: any = {
         teamType: params.teamType,
-        teams: params.team ? [params.team] : undefined,
-        minOverall: params.minRating,
-        maxOverall: params.maxRating,
-        positions: params.position ? [params.position] : undefined,
         sortBy: "overall-desc",
         limit: params.limit,
         offset: offset,
-      });
+      };
+
+      if (params.team) queryArgs.teams = [params.team];
+      if (params.minRating !== undefined) queryArgs.minOverall = params.minRating;
+      if (params.maxRating !== undefined) queryArgs.maxOverall = params.maxRating;
+      if (params.position) queryArgs.positions = [params.position];
+
+      // Use optimized getAllFiltered which filters at database level
+      const result = await c.env.runQuery(api.players.getAllFiltered, queryArgs);
 
       // Calculate next cursor
       const nextCursor = result.hasMore ? (offset + params.limit).toString() : undefined;

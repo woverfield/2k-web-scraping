@@ -48,6 +48,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@vercel/analytics": "^1.5.0",
     "axios": "^1.13.2",
     "cheerio": "^1.0.0-rc.12",
     "class-variance-authority": "^0.7.1",
