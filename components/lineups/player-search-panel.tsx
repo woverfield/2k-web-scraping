@@ -53,21 +53,20 @@ function DraggablePlayerCard({ player, onClick, onInfoClick, isSelected }: Dragg
     <div
       ref={setNodeRef}
       style={style}
+      {...attributes}
+      {...listeners}
       className={cn(
-        "flex items-center gap-1.5 p-2 rounded-md border transition-all group w-full max-w-full overflow-hidden",
+        "flex items-center gap-1.5 py-2 px-1 rounded-md border transition-all group cursor-grab active:cursor-grabbing",
         "hover:bg-accent hover:border-primary/50 hover:shadow-sm",
+        "max-w-full min-w-0",
         isSelected
           ? "bg-primary/10 border-primary opacity-50"
           : "bg-background border-border"
       )}
       onClick={handleClick}
     >
-      {/* Drag Handle */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0"
-      >
+      {/* Drag Handle Icon */}
+      <div className="text-muted-foreground group-hover:text-foreground shrink-0">
         <GripVertical className="h-3.5 w-3.5" />
       </div>
 
@@ -153,9 +152,9 @@ export function PlayerSearchPanel({
     : topPlayers?.sort((a, b) => b.overall - a.overall).slice(0, 50);
 
   return (
-    <div className="flex flex-col h-full w-full overflow-x-hidden">
+    <div className="flex flex-col h-full min-w-0">
       {/* Header */}
-      <div className="p-3 space-y-3 border-b w-full">
+      <div className="p-3 space-y-3 border-b min-w-0">
         <h2 className="text-sm font-semibold">Add Players</h2>
 
         {/* Team Type Tabs */}
@@ -180,8 +179,8 @@ export function PlayerSearchPanel({
       </div>
 
       {/* Player List */}
-      <ScrollArea className="flex-1 w-full">
-        <div className="p-2 space-y-1 w-full max-w-full">
+      <ScrollArea className="flex-1 min-w-0">
+        <div className="px-2 py-2 space-y-1 min-w-0">
           {players === undefined ? (
             // Loading state
             Array.from({ length: 10 }).map((_, i) => (

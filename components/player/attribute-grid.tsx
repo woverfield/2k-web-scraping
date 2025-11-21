@@ -7,11 +7,12 @@ import { AttributeBar } from "@/components/ui/attribute-bar";
 import { cn } from "@/lib/utils";
 import { fadeIn, staggerContainer } from "@/lib/animations";
 import { formatAttributeName, getAttributeCategory } from "@/lib/player-stats";
-import type { Player, PlayerAttributes } from "@/types/player";
+import type { Player, PlayerAttributes, PositionAverages } from "@/types/player";
 
 export interface AttributeGridProps {
   player: Player;
   className?: string;
+  positionAverages?: PositionAverages;
 }
 
 /**
@@ -58,7 +59,7 @@ function groupAttributesByCategory(attributes: PlayerAttributes) {
   return Object.entries(categories).filter(([_, attrs]) => attrs.length > 0);
 }
 
-export function AttributeGrid({ player, className }: AttributeGridProps) {
+export function AttributeGrid({ player, className, positionAverages }: AttributeGridProps) {
   const groupedAttributes = React.useMemo(() => {
     if (!player.attributes) return [];
     return groupAttributesByCategory(player.attributes);
@@ -97,16 +98,27 @@ export function AttributeGrid({ player, className }: AttributeGridProps) {
 
                 {/* Attributes in this category */}
                 <div className="space-y-2">
-                  {attributes.map((attr, index) => (
-                    <AttributeBar
-                      key={attr.name}
-                      label={attr.name}
-                      value={attr.value}
-                      maxValue={99}
-                      animated
-                      delay={categoryIndex * 0.1 + index * 0.03}
-                    />
-                  ))}
+                  {attributes.map((attr, index) => {
+                    // Find the camelCase key for this attribute
+                    const attrKey = Object.keys(player.attributes || {}).find(
+                      key => formatAttributeName(key) === attr.name
+                    );
+                    const positionAvg = attrKey && typeof positionAverages?.attributes[attrKey] === 'number'
+                      ? positionAverages.attributes[attrKey]
+                      : undefined;
+
+                    return (
+                      <AttributeBar
+                        key={attr.name}
+                        label={attr.name}
+                        value={attr.value}
+                        maxValue={99}
+                        animated
+                        delay={categoryIndex * 0.1 + index * 0.03}
+                        positionAverage={positionAvg}
+                      />
+                    );
+                  })}
                 </div>
               </motion.div>
             ))}

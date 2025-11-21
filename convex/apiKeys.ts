@@ -95,13 +95,14 @@ export const checkRateLimit = query({
       return { allowed: false, reason: "API key not found" };
     }
 
-    // Get request count in the last hour
+    // Get request count in the last hour using compound index for better performance
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
     const recentRequests = await ctx.db
       .query("requestLogs")
-      .withIndex("by_apiKeyId", (q) => q.eq("apiKeyId", apiKey._id))
-      .filter((q) => q.gte(q.field("timestamp"), oneHourAgo))
+      .withIndex("by_apiKeyId_and_timestamp", (q) =>
+        q.eq("apiKeyId", apiKey._id).gte("timestamp", oneHourAgo)
+      )
       .collect();
 
     const requestsInLastHour = recentRequests.length;
@@ -251,13 +252,14 @@ export const getApiKeyStats = query({
       throw new Error("API key not found");
     }
 
-    // Get request count in the last hour
+    // Get request count in the last hour using compound index for better performance
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
     const recentRequests = await ctx.db
       .query("requestLogs")
-      .withIndex("by_apiKeyId", (q) => q.eq("apiKeyId", apiKey._id))
-      .filter((q) => q.gte(q.field("timestamp"), oneHourAgo))
+      .withIndex("by_apiKeyId_and_timestamp", (q) =>
+        q.eq("apiKeyId", apiKey._id).gte("timestamp", oneHourAgo)
+      )
       .collect();
 
     const requestsThisHour = recentRequests.length;

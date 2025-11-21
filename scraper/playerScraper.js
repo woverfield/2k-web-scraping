@@ -139,8 +139,16 @@ export async function scrapePlayerDetails(page, basicPlayer) {
           .replace(/-/g, '')
           .replace(/^\d+/, ''); // Remove leading digits
 
-        if (key && key.length > 1) {
-          attributes[key] = value;
+        // Normalize attribute names to match application expectations
+        const attributeNameMap = {
+          'layup': 'drivingLayup',
+          'overallDurability': 'durability',
+        };
+
+        const normalizedKey = attributeNameMap[key] || key;
+
+        if (normalizedKey && normalizedKey.length > 1) {
+          attributes[normalizedKey] = value;
         }
       }
 

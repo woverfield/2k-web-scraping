@@ -20,13 +20,19 @@ const app: HonoWithConvex<ActionCtx> = new Hono();
 // MIDDLEWARE
 // ============================================================================
 
-app.use("*", logger((...args) => console.log(...args)));
+// Logger middleware (only in development)
+if (process.env.NODE_ENV === "development") {
+  app.use("*", logger());
+}
 
 // Enable ETag support for caching
 app.use("*", etag());
 
+// CORS configuration
+const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:3000";
+
 app.use("/api/*", cors({
-  origin: process.env.CLIENT_ORIGIN || "*",
+  origin: clientOrigin,
   allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowHeaders: ["Content-Type", "Authorization", "X-API-Key", "If-None-Match"],
   credentials: true,
@@ -94,7 +100,7 @@ async function authMiddleware(c: any, next: any) {
   const method = c.req.method;
   const statusCode = c.res.status;
 
-  // Log asynchronously (don't await)
+  // Log asynchronously (don't await, fail silently)
   c.env.runMutation(api.apiKeys.logRequest, {
     apiKeyId: rateLimit.apiKeyId as Id<"apiKeys">,
     endpoint,
@@ -102,7 +108,9 @@ async function authMiddleware(c: any, next: any) {
     statusCode,
     responseTime,
     queryParams: c.req.url.includes("?") ? c.req.url.split("?")[1] : undefined,
-  }).catch((err: any) => console.error("Failed to log request:", err));
+  }).catch(() => {
+    // Logging failure is non-critical, fail silently
+  });
 }
 
 // ============================================================================
@@ -128,6 +136,20 @@ function errorResponse(message: string, code = "UNKNOWN_ERROR", details?: any) {
     },
   };
 }
+
+// ============================================================================
+// ROUTES: HEALTH & STATUS
+// ============================================================================
+
+// GET /api/health - Health check endpoint (no auth required)
+app.get("/api/health", (c) => {
+  return c.json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    service: "NBA 2K API",
+    version: "1.0.0",
+  });
+});
 
 // ============================================================================
 // ROUTES: REGISTRATION & DASHBOARD
@@ -395,7 +417,7 @@ app.get("/api/players",
 app.get("/api/players/search",
   authMiddleware,
   zValidator("query", z.object({
-    q: z.string().min(1, "Search query is required"),
+    q: z.string().min(1, "Search query is required").max(100, "Search query too long"),
     teamType: z.enum(["curr", "class", "allt"]).optional(),
     limit: z.coerce.number().min(1).max(100).default(50),
   })),
@@ -561,6 +583,16 @@ app.get("/api/teams/:teamName/roster",
   async (c) => {
     try {
       const teamName = decodeURIComponent(c.req.param("teamName"));
+
+      // Validate team name
+      if (!teamName || teamName.length > 100 || teamName.length < 1) {
+        return c.json(errorResponse(
+          "Invalid team name",
+          "INVALID_INPUT",
+          { message: "Team name must be between 1 and 100 characters" }
+        ), 400);
+      }
+
       const { teamType } = c.req.valid("query");
 
       const rosterArgs: any = { team: teamName };

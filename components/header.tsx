@@ -20,6 +20,7 @@ import { useScroll } from "@/hooks/use-scroll";
 import { cn } from "@/lib/utils";
 import { Github, SlidersHorizontal, Users, ChevronDown, LayoutGrid } from "lucide-react";
 import { basketball } from "@lucide/lab";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export function Header() {
   const [open, setOpen] = React.useState(false);
@@ -154,6 +155,8 @@ export function Header() {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+
+          <ModeToggle />
 
           <Button asChild>
             <a href="/dashboard">Get API Key</a>

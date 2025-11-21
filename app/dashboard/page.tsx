@@ -7,6 +7,7 @@ import { ApiKeyDisplay } from "@/components/api-key-display";
 import { RegistrationDialog } from "@/components/registration-dialog";
 import { QuickActionCard } from "@/components/quick-action-card";
 import { Button } from "@/components/ui/button";
+import { GameCard } from "@/components/ui/game-card";
 import {
   Card,
   CardContent,
@@ -216,17 +217,17 @@ export default function DashboardPage() {
     <>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold">API Dashboard</h1>
-          <p className="text-slate-600 dark:text-slate-400">
+          <h1 className="mb-2 text-4xl font-bold font-rajdhani tracking-tight">API Dashboard</h1>
+          <p className="text-slate-600 dark:text-slate-400 font-rajdhani tracking-wide text-lg">
             Try the playground to explore data visually, then use the API to integrate into your application
           </p>
         </div>
 
         <div className="space-y-6">
           {/* API Key Section */}
-          <Card>
+          <GameCard showCorners={false} hoverEffect={false}>
             <CardHeader>
-              <CardTitle>API Key</CardTitle>
+              <CardTitle className="font-rajdhani text-2xl">API Key</CardTitle>
               <CardDescription>
                 Use this key to authenticate your API requests
               </CardDescription>
@@ -238,20 +239,20 @@ export default function DashboardPage() {
                 onRegenerate={handleRegenerate}
               />
             </CardContent>
-          </Card>
+          </GameCard>
 
           {/* Usage Stats */}
           <div className="grid gap-6 md:grid-cols-3">
-            <Card>
+            <GameCard showCorners={false} hoverEffect={false}>
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium font-rajdhani text-lg">
                   <Activity className="h-4 w-4 text-primary" />
                   Requests This Hour
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="mb-2 flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">
+                  <span className="text-3xl font-bold font-rajdhani">
                     {stats.requestCount}
                   </span>
                   <span className="text-sm text-slate-600 dark:text-slate-400">
@@ -263,47 +264,47 @@ export default function DashboardPage() {
                   {stats.requestsRemaining} requests remaining
                 </p>
               </CardContent>
-            </Card>
+            </GameCard>
 
-            <Card>
+            <GameCard showCorners={false} hoverEffect={false}>
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium font-rajdhani text-lg">
                   <TrendingUp className="h-4 w-4 text-green-500" />
                   Total Requests
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="mb-2 text-3xl font-bold">
+                <div className="mb-2 text-3xl font-bold font-rajdhani">
                   {stats.totalRequests.toLocaleString()}
                 </div>
                 <p className="text-xs text-slate-600 dark:text-slate-400">
                   All-time API requests
                 </p>
               </CardContent>
-            </Card>
+            </GameCard>
 
-            <Card>
+            <GameCard showCorners={false} hoverEffect={false}>
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium font-rajdhani text-lg">
                   <AlertCircle className="h-4 w-4 text-amber-500" />
                   Rate Limit Reset
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="mb-2 text-3xl font-bold">
+                <div className="mb-2 text-3xl font-bold font-rajdhani">
                   {calculateTimeUntilReset(stats.resetAt)}
                 </div>
                 <p className="text-xs text-slate-600 dark:text-slate-400">
                   Until limit resets
                 </p>
               </CardContent>
-            </Card>
+            </GameCard>
           </div>
 
           {/* Recent Requests */}
-          <Card>
+          <GameCard showCorners={false} hoverEffect={false}>
             <CardHeader>
-              <CardTitle>Recent Requests</CardTitle>
+              <CardTitle className="font-rajdhani text-2xl">Recent Requests</CardTitle>
               <CardDescription>
                 Your last 10 API requests
               </CardDescription>
@@ -377,23 +378,29 @@ export default function DashboardPage() {
                 </div>
               )}
             </CardContent>
-          </Card>
+          </GameCard>
 
           {/* Explore Your Data */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Explore Your Data</CardTitle>
+          <GameCard showCorners={false} hoverEffect={false}>
+            <CardHeader className="pb-4">
+              <CardTitle className="font-rajdhani text-2xl">Explore Your Data</CardTitle>
               <CardDescription>
                 Preview what your API returns with our interactive tools
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-6 sm:grid-cols-3">
-                <div className="space-y-3">
+                {/* Player Playground Card */}
+                <GameCard 
+                  variant="hollow" 
+                  className="space-y-3 p-4 bg-white/50 dark:bg-white/5"
+                  hoverEffect={true}
+                  showCorners={false}
+                >
                   <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                     <SlidersHorizontal className="h-6 w-6 text-primary" />
                   </div>
-                  <h4 className="font-semibold">Player Playground</h4>
+                  <h4 className="font-semibold font-rajdhani text-lg">Player Playground</h4>
                   <p className="text-sm text-muted-foreground">
                     Filter through all players interactively
                   </p>
@@ -403,12 +410,19 @@ export default function DashboardPage() {
                       <ExternalLink className="ml-2 h-3 w-3" />
                     </Link>
                   </Button>
-                </div>
-                <div className="space-y-3">
+                </GameCard>
+
+                {/* Team Browser Card */}
+                <GameCard 
+                  variant="hollow" 
+                  className="space-y-3 p-4 bg-white/50 dark:bg-white/5"
+                  hoverEffect={true}
+                  showCorners={false}
+                >
                   <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                     <Users className="h-6 w-6 text-primary" />
                   </div>
-                  <h4 className="font-semibold">Team Browser</h4>
+                  <h4 className="font-semibold font-rajdhani text-lg">Team Browser</h4>
                   <p className="text-sm text-muted-foreground">
                     View rosters and team statistics
                   </p>
@@ -418,12 +432,19 @@ export default function DashboardPage() {
                       <ExternalLink className="ml-2 h-3 w-3" />
                     </Link>
                   </Button>
-                </div>
-                <div className="space-y-3">
+                </GameCard>
+
+                {/* API Docs Card */}
+                <GameCard 
+                  variant="hollow" 
+                  className="space-y-3 p-4 bg-white/50 dark:bg-white/5"
+                  hoverEffect={true}
+                  showCorners={false}
+                >
                   <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                     <Code2 className="h-6 w-6 text-primary" />
                   </div>
-                  <h4 className="font-semibold">API Docs</h4>
+                  <h4 className="font-semibold font-rajdhani text-lg">API Docs</h4>
                   <p className="text-sm text-muted-foreground">
                     Reference and code examples
                   </p>
@@ -433,10 +454,10 @@ export default function DashboardPage() {
                       <ExternalLink className="ml-2 h-3 w-3" />
                     </Link>
                   </Button>
-                </div>
+                </GameCard>
               </div>
             </CardContent>
-          </Card>
+          </GameCard>
         </div>
       </div>
 

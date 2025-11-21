@@ -44,6 +44,82 @@ const CATEGORIES = [
   { key: "rebounding", label: "REB", fullLabel: "Rebounding" },
 ];
 
+// Custom tick component for proper theming with label and value
+const CustomTick = (props: any) => {
+  const { payload, x, y, textAnchor, index } = props;
+
+  if (!payload) return null;
+
+  // Access the complete data point from the chart data using index
+  const chartData = props.chartData;
+  const dataPoint = chartData?.[index];
+
+  return (
+    <g transform={`translate(${x},${y})`}>
+      {/* Category label */}
+      <text
+        x={0}
+        y={0}
+        dy={-2}
+        textAnchor={textAnchor}
+        className="fill-muted-foreground text-[10px] font-medium"
+      >
+        {payload.value}
+      </text>
+      {/* Rating value */}
+      {dataPoint?.lineup1 !== undefined && (
+        <text
+          x={0}
+          y={0}
+          dy={10}
+          textAnchor={textAnchor}
+          className="fill-foreground text-[11px] font-bold"
+        >
+          {dataPoint.lineup1}
+        </text>
+      )}
+    </g>
+  );
+};
+
+// Custom tooltip to show full category names
+const CustomTooltip = ({ active, payload, lineup1Name, lineup2Name }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="rounded-lg border bg-background p-2 shadow-sm">
+        <div className="grid gap-2">
+          <div className="flex flex-col">
+            <span className="text-[0.70rem] uppercase text-muted-foreground">
+              {data.fullLabel}
+            </span>
+            <div className="flex flex-col gap-1 mt-1">
+              {payload.map((entry: any, index: number) => {
+                const displayName = entry.dataKey === "lineup1" ? lineup1Name : lineup2Name;
+                return (
+                  <div key={index} className="flex items-center gap-2">
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: entry.color }}
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      {displayName}:
+                    </span>
+                    <span className="text-xs font-bold text-foreground">
+                      {entry.value}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 function calculateLineupStats(players: Player[]): RadarChartData {
   if (players.length === 0) {
     return {
@@ -153,33 +229,30 @@ export function LineupRadarChart({
           >
             <ChartTooltip
               cursor={false}
-              content={
-                <ChartTooltipContent
-                  indicator="line"
-                  labelKey="fullLabel"
-                />
-              }
+              content={<CustomTooltip lineup1Name={lineup1Name} lineup2Name={lineup2Name} />}
             />
-            <PolarAngleAxis dataKey="category" />
+            <PolarAngleAxis
+              dataKey="category"
+              tick={<CustomTick chartData={chartData} />}
+              tickSize={15}
+            />
             <PolarGrid />
             <Radar
               dataKey="lineup1"
               fill="var(--color-lineup1)"
-              fillOpacity={isComparison ? 0.5 : 0.6}
-              dot={
-                !isComparison
-                  ? {
-                      r: 4,
-                      fillOpacity: 1,
-                    }
-                  : undefined
-              }
+              fillOpacity={0.7}
+              stroke="var(--color-lineup1)"
+              strokeWidth={2}
+              dot={{ fill: "var(--color-lineup1)", r: 4 }}
             />
             {isComparison && (
               <Radar
                 dataKey="lineup2"
                 fill="var(--color-lineup2)"
-                fillOpacity={0.4}
+                fillOpacity={0.7}
+                stroke="var(--color-lineup2)"
+                strokeWidth={2}
+                dot={{ fill: "var(--color-lineup2)", r: 4 }}
               />
             )}
             {isComparison && (

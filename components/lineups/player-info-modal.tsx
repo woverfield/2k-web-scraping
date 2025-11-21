@@ -13,7 +13,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { AttributeBar } from "@/components/ui/attribute-bar";
 import { RatingBadge } from "@/components/ui/rating-badge";
 import { cn } from "@/lib/utils";
-import { formatAttributeName, getAttributeCategory } from "@/lib/player-stats";
+import { formatAttributeName, getAttributeCategory, getPrimaryPosition } from "@/lib/player-stats";
+import { usePositionAverages } from "@/hooks/use-position-averages";
 import { User, X } from "lucide-react";
 import type { Player, PlayerAttributes, PlayerBadges } from "@/types/player";
 import Image from "next/image";
@@ -94,23 +95,6 @@ function groupAttributesByCategory(attributes: PlayerAttributes) {
   return Object.entries(categories).filter(([_, attrs]) => attrs.length > 0);
 }
 
-/**
- * Get top attributes from a player
- */
-function getTopAttributes(attributes: PlayerAttributes, count: number = 4) {
-  const all: Array<{ name: string; value: number }> = [];
-
-  Object.entries(attributes).forEach(([key, value]) => {
-    if (typeof value === "number") {
-      all.push({
-        name: formatAttributeName(key),
-        value,
-      });
-    }
-  });
-
-  return all.sort((a, b) => b.value - a.value).slice(0, count);
-}
 
 /**
  * Organize badges by tier
@@ -157,6 +141,10 @@ function organizeBadgesByTier(badges: PlayerBadges) {
 export function PlayerInfoModal({ player, open, onOpenChange }: PlayerInfoModalProps) {
   const [selectedTier, setSelectedTier] = React.useState<BadgeTier | "All">("All");
 
+  // Get position averages for comparison
+  const primaryPosition = player ? getPrimaryPosition(player.positions) : undefined;
+  const positionAverages = usePositionAverages(primaryPosition);
+
   // Reset tier filter when player changes
   React.useEffect(() => {
     setSelectedTier("All");
@@ -166,10 +154,6 @@ export function PlayerInfoModal({ player, open, onOpenChange }: PlayerInfoModalP
 
   const groupedAttributes = player.attributes
     ? groupAttributesByCategory(player.attributes)
-    : [];
-
-  const topAttributes = player.attributes
-    ? getTopAttributes(player.attributes, 4)
     : [];
 
   const badgesByTier = player.badges
@@ -194,7 +178,7 @@ export function PlayerInfoModal({ player, open, onOpenChange }: PlayerInfoModalP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] p-0 gap-0 overflow-hidden">
         {/* Fixed Header */}
-        <DialogHeader className="p-4 pb-0 space-y-0">
+        <DialogHeader className="p-4 pr-12 pb-0 space-y-0">
           <div className="flex items-start gap-4">
             {/* Player Image */}
             <div className="relative h-28 w-28 shrink-0 rounded-lg overflow-hidden bg-muted">
@@ -250,20 +234,6 @@ export function PlayerInfoModal({ player, open, onOpenChange }: PlayerInfoModalP
             </div>
           </div>
 
-          {/* Top Attributes */}
-          {topAttributes.length > 0 && (
-            <div className="mt-4 pt-4 border-t">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Top Attributes</p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {topAttributes.map((attr) => (
-                  <div key={attr.name} className="text-center">
-                    <p className="text-2xl font-bold tabular-nums">{attr.value}</p>
-                    <p className="text-[10px] text-muted-foreground truncate">{attr.name}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </DialogHeader>
 
         {/* Scrollable Content */}
@@ -280,16 +250,27 @@ export function PlayerInfoModal({ player, open, onOpenChange }: PlayerInfoModalP
                         {category}
                       </h4>
                       <div className="space-y-1.5">
-                        {attributes.map((attr, index) => (
-                          <AttributeBar
-                            key={attr.name}
-                            label={attr.name}
-                            value={attr.value}
-                            maxValue={99}
-                            animated
-                            delay={categoryIndex * 0.05 + index * 0.02}
-                          />
-                        ))}
+                        {attributes.map((attr, index) => {
+                          // Find the camelCase key for this attribute
+                          const attrKey = Object.keys(player.attributes || {}).find(
+                            key => formatAttributeName(key) === attr.name
+                          );
+                          const positionAvg = attrKey && typeof positionAverages?.attributes[attrKey] === 'number'
+                            ? positionAverages.attributes[attrKey]
+                            : undefined;
+
+                          return (
+                            <AttributeBar
+                              key={attr.name}
+                              label={attr.name}
+                              value={attr.value}
+                              maxValue={99}
+                              animated
+                              delay={categoryIndex * 0.05 + index * 0.02}
+                              positionAverage={positionAvg}
+                            />
+                          );
+                        })}
                       </div>
                     </div>
                   ))}

@@ -1,11 +1,8 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -14,9 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { fadeIn, staggerContainer, staggerItem } from "@/lib/animations";
-import { getRatingClasses } from "@/lib/rating-colors";
-import { ArrowUpDown, User } from "lucide-react";
+import { fadeIn } from "@/lib/animations";
+import { MasonryRoot, MasonryItem } from "@/components/ui/masonry";
+import { FlipCard } from "@/components/playground/flip-card";
 import type { Player } from "@/types/player";
 
 export interface TeamRosterProps {
@@ -113,94 +110,37 @@ export function TeamRoster({ players, teamType, className }: TeamRosterProps) {
         </CardHeader>
 
         <CardContent>
-          <motion.div
-            key={`${sortBy}-${positionFilter}`}
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-            className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
-          >
-            {sortedPlayers.map((player, index) => (
-              <motion.div key={player._id} variants={staggerItem}>
-                <a
-                  href={`/players/${player.slug}?type=${teamType}&team=${encodeURIComponent(player.team)}`}
-                  className="block"
-                >
-                  <Card className="h-full transition-all hover:shadow-md hover:border-primary/50 cursor-pointer">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        {/* Player Image */}
-                        <div className="relative h-20 w-20 shrink-0 rounded-lg overflow-hidden bg-muted">
-                          {player.playerImage ? (
-                            <Image
-                              src={player.playerImage}
-                              alt={player.name}
-                              fill
-                              sizes="80px"
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center">
-                              <User className="h-10 w-10 text-muted-foreground" />
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Player Info */}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold truncate">{player.name}</p>
-
-                          {/* Position & Archetype */}
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {player.positions &&
-                              player.positions.slice(0, 2).map((pos) => (
-                                <Badge
-                                  key={pos}
-                                  variant="secondary"
-                                  className="text-xs"
-                                >
-                                  {pos}
-                                </Badge>
-                              ))}
-                          </div>
-
-                          {/* Overall Rating */}
-                          <div className="mt-2">
-                            <div
-                              className={cn(
-                                "inline-flex items-center gap-1 px-2 py-0.5 rounded-sm",
-                                getRatingClasses(player.overall).bg,
-                                getRatingClasses(player.overall).shadow
-                              )}
-                            >
-                              <span className="text-xl font-bold tabular-nums text-white">
-                                {player.overall}
-                              </span>
-                            </div>
-                            <span className="text-xs text-muted-foreground ml-2">
-                              OVR
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Archetype/Build */}
-                      {(player.archetype || player.build) && (
-                        <div className="mt-3 pt-3 border-t">
-                          <p className="text-xs text-muted-foreground truncate">
-                            {player.archetype || player.build}
-                          </p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </a>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* Empty State */}
-          {sortedPlayers.length === 0 && (
+          {sortedPlayers.length > 0 ? (
+            <MasonryRoot
+              key={`${sortBy}-${positionFilter}`}
+              columnWidth={160}
+              gap={{ column: 12, row: 12 }}
+              itemHeight={240}
+              overscan={3}
+              linear
+              defaultWidth={1200}
+              defaultHeight={800}
+              fallback={
+                <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                  {sortedPlayers.slice(0, 15).map((player) => (
+                    <div key={player._id} className="h-60 bg-muted animate-pulse rounded-lg" />
+                  ))}
+                </div>
+              }
+            >
+              {sortedPlayers.map((player) => (
+                <MasonryItem key={player._id}>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    <FlipCard player={player} />
+                  </motion.div>
+                </MasonryItem>
+              ))}
+            </MasonryRoot>
+          ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground">
                 No players found for this position

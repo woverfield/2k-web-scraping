@@ -41,8 +41,8 @@ This project provides:
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS, shadcn/ui
-- **Backend**: Convex (serverless platform)
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS v4, shadcn/ui
+- **Backend**: Convex (serverless platform), Hono (HTTP routing)
 - **Scraper**: Playwright, Node.js
 - **Deployment**: Vercel (frontend), Convex Cloud (backend)
 
@@ -84,27 +84,40 @@ curl 'https://canny-kingfisher-472.convex.site/api/stats'
 
 ```bash
 # Clone repository
-git clone https://github.com/woverfield/2k-web-scraping.git
-cd 2k-web-scraping
+git clone https://github.com/woverfield/nba2k-api.git
+cd nba2k-api
 
 # Install dependencies
 npm install
 
-# Set up Convex
-cd frontend
-npm install
-npx convex dev
+# Copy environment template
+cp .env.example .env.local
 
-# In another terminal, run Next.js
+# Edit .env.local and add your Convex deployment URL
+# Get your URL from: https://dashboard.convex.dev
+
+# Start Convex development server and Next.js together
 npm run dev
 ```
 
 #### Environment Variables
 
-Create `frontend/.env.local`:
+Create `.env.local` in the root directory:
 ```env
+# Convex Backend
 NEXT_PUBLIC_CONVEX_URL=your_convex_deployment_url
+CONVEX_DEPLOYMENT=dev:your-deployment
+CONVEX_URL=https://your-deployment.convex.cloud
+
+# API Configuration
+ADMIN_API_KEY=your_secure_admin_key_here
+CLIENT_ORIGIN=http://localhost:3000
+
+# Environment
+NODE_ENV=development
 ```
+
+See `.env.example` for a complete template with all available options.
 
 ### 3. Running the Scraper
 
@@ -273,6 +286,20 @@ Get database statistics (no auth required).
 }
 ```
 
+#### GET /api/health
+
+Health check endpoint for service monitoring (no auth required).
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "timestamp": "2025-11-21T10:30:00.000Z",
+  "service": "NBA 2K API",
+  "version": "1.0.0"
+}
+```
+
 ### Error Responses
 
 ```json
@@ -291,35 +318,45 @@ Get database statistics (no auth required).
 - `RATE_LIMIT_EXCEEDED`: Too many requests
 - `PLAYER_NOT_FOUND`: Player not found
 - `INVALID_PARAMETERS`: Invalid query parameters
+- `INVALID_INPUT`: Invalid input data (e.g., search query too long)
 
 ## Project Structure
 
 ```
 .
-├── convex/                 # Convex backend
-│   ├── schema.ts          # Database schema
-│   ├── players.ts         # Player queries
-│   ├── teams.ts           # Team queries
-│   ├── apiKeys.ts         # API key management
-│   └── http.ts            # HTTP API endpoints
+├── convex/                    # Convex backend
+│   ├── schema.ts             # Database schema
+│   ├── players.ts            # Player queries
+│   ├── teams.ts              # Team queries
+│   ├── apiKeys.ts            # API key management
+│   └── http.ts               # HTTP API endpoints
 │
-├── frontend/              # Next.js frontend
-│   ├── app/              # App router pages
-│   │   ├── page.tsx      # Landing page
-│   │   ├── dashboard/    # Dashboard
-│   │   └── docs/         # Documentation
-│   ├── components/       # React components
-│   └── lib/              # Utilities
+├── app/                      # Next.js App Router
+│   ├── page.tsx             # Landing page
+│   ├── dashboard/           # Dashboard
+│   ├── docs/                # Documentation
+│   └── player/              # Player pages
 │
-├── scraper/              # Legacy scraper
-│   └── playerScraper.js # Main scraper
+├── components/              # React components
+│   ├── ui/                 # UI primitives (shadcn/ui)
+│   ├── player/             # Player-related components
+│   └── lineups/            # Lineup components
+│
+├── lib/                    # Utilities & helpers
+│   ├── attribute-normalizer.ts  # Attribute normalization
+│   ├── player-stats.ts          # Player statistics
+│   └── utils.ts                 # General utilities
+│
+├── scraper/               # Web scraper
+│   └── playerScraper.js  # Playwright-based scraper
 │
 ├── scripts/              # Utility scripts
 │   ├── runScraper.js    # Scraper orchestrator
-│   ├── mergePlayers.js  # Data merging
-│   └── verifyData.js    # Data validation
+│   ├── normalize-player-data.ts  # Data migration
+│   └── README.md        # Scripts documentation
 │
-└── README.md            # This file
+├── .env.example         # Environment variables template
+└── README.md           # This file
 ```
 
 ## Scraper Details
@@ -360,7 +397,6 @@ Get database statistics (no auth required).
 ### Backend (Convex)
 
 ```bash
-cd frontend
 npx convex deploy
 ```
 
@@ -426,7 +462,7 @@ MIT License - see LICENSE file for details
 
 ## Support
 
-- GitHub Issues: [Report bugs or request features](https://github.com/woverfield/2k-web-scraping/issues)
+- GitHub Issues: [Report bugs or request features](https://github.com/woverfield/nba2k-api/issues)
 - Documentation: [View full docs](https://canny-kingfisher-472.convex.site/docs)
 
 ## Disclaimer

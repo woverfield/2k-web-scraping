@@ -108,7 +108,8 @@ export default defineSchema({
   })
     .index("by_apiKeyId", ["apiKeyId"])
     .index("by_timestamp", ["timestamp"])
-    .index("by_endpoint", ["endpoint"]),
+    .index("by_endpoint", ["endpoint"])
+    .index("by_apiKeyId_and_timestamp", ["apiKeyId", "timestamp"]), // For efficient rate limiting
 
   /**
    * Scrape Jobs table - tracks scraping operations

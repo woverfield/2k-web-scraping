@@ -4,6 +4,12 @@ import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { calculateRadarStats, avg } from "@/lib/player-stats";
 import { getAttributeColor } from "@/lib/rating-colors";
@@ -54,12 +60,15 @@ function calculateLineupStats(players: Player[]): RadarChartData {
   };
 }
 
-function getPositionCoverage(players: Player[]): Set<string> {
-  const covered = new Set<string>();
+function getPositionCoverage(players: Player[]): Map<string, Player[]> {
+  const positionMap = new Map<string, Player[]>();
   players.forEach((player) => {
-    player.positions?.forEach((pos) => covered.add(pos));
+    player.positions?.forEach((pos) => {
+      const existing = positionMap.get(pos) || [];
+      positionMap.set(pos, [...existing, player]);
+    });
   });
-  return covered;
+  return positionMap;
 }
 
 export function LineupStats({
@@ -77,71 +86,98 @@ export function LineupStats({
   const isComparison = !!lineup2;
 
   return (
-    <div className="space-y-4">
-      {/* Position Coverage */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Position Coverage</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className={cn(
-            "grid gap-4",
-            isComparison ? "grid-cols-2" : "grid-cols-1"
-          )}>
-            {/* Lineup 1 Positions */}
-            <div className="space-y-2">
-              {isComparison && (
-                <p className="text-xs text-muted-foreground font-medium">
-                  {lineup1Name}
-                </p>
-              )}
-              <div className="flex gap-2">
-                {POSITIONS.map((pos) => {
-                  const isCovered = lineup1Positions.has(pos);
-                  return (
-                    <Badge
-                      key={pos}
-                      variant={isCovered ? "default" : "outline"}
-                      className={cn(
-                        "flex-1 justify-center",
-                        !isCovered && "text-muted-foreground"
-                      )}
-                    >
-                      {pos}
-                    </Badge>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Lineup 2 Positions */}
-            {isComparison && lineup2Positions && (
+    <TooltipProvider>
+      <div className="space-y-4">
+        {/* Position Coverage */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Position Coverage</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={cn(
+              "grid gap-4",
+              isComparison ? "grid-cols-2" : "grid-cols-1"
+            )}>
+              {/* Lineup 1 Positions */}
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground font-medium">
-                  {lineup2Name}
-                </p>
+                {isComparison && (
+                  <p className="text-xs text-muted-foreground font-medium">
+                    {lineup1Name}
+                  </p>
+                )}
                 <div className="flex gap-2">
                   {POSITIONS.map((pos) => {
-                    const isCovered = lineup2Positions.has(pos);
+                    const players = lineup1Positions.get(pos) || [];
+                    const isCovered = players.length > 0;
                     return (
-                      <Badge
-                        key={pos}
-                        variant={isCovered ? "default" : "outline"}
-                        className={cn(
-                          "flex-1 justify-center",
-                          !isCovered && "text-muted-foreground"
+                      <Tooltip key={pos}>
+                        <TooltipTrigger asChild>
+                          <Badge
+                            variant={isCovered ? "default" : "outline"}
+                            className={cn(
+                              "flex-1 justify-center cursor-default",
+                              !isCovered && "text-muted-foreground"
+                            )}
+                          >
+                            {pos}
+                          </Badge>
+                        </TooltipTrigger>
+                        {isCovered && (
+                          <TooltipContent>
+                            <div className="text-xs">
+                              {players.map((player, idx) => (
+                                <div key={idx}>{player.name}</div>
+                              ))}
+                            </div>
+                          </TooltipContent>
                         )}
-                      >
-                        {pos}
-                      </Badge>
+                      </Tooltip>
                     );
                   })}
                 </div>
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+
+              {/* Lineup 2 Positions */}
+              {isComparison && lineup2Positions && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium">
+                    {lineup2Name}
+                  </p>
+                  <div className="flex gap-2">
+                    {POSITIONS.map((pos) => {
+                      const players = lineup2Positions.get(pos) || [];
+                      const isCovered = players.length > 0;
+                      return (
+                        <Tooltip key={pos}>
+                          <TooltipTrigger asChild>
+                            <Badge
+                              variant={isCovered ? "default" : "outline"}
+                              className={cn(
+                                "flex-1 justify-center cursor-default",
+                                !isCovered && "text-muted-foreground"
+                              )}
+                            >
+                              {pos}
+                            </Badge>
+                          </TooltipTrigger>
+                          {isCovered && (
+                            <TooltipContent>
+                              <div className="text-xs">
+                                {players.map((player, idx) => (
+                                  <div key={idx}>{player.name}</div>
+                                ))}
+                              </div>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
       {/* Category Averages */}
       <Card>
@@ -219,6 +255,7 @@ export function LineupStats({
           })}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }

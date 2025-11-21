@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
+import { Github } from "lucide-react";
 
 export function Footer() {
   return (
@@ -71,7 +72,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <a
-                  href="https://github.com/woverfield/2k-web-scraping"
+                  href="https://github.com/woverfield/nba2k-api"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-foreground"
@@ -107,7 +108,15 @@ export function Footer() {
 
         <div className="flex flex-col gap-4 text-center text-sm text-muted-foreground md:flex-row md:justify-between">
           <p>Built with Next.js, Convex, and Playwright</p>
-          <p>&copy; {new Date().getFullYear()} NBA 2K Ratings API</p>
+          <a
+            href="https://github.com/woverfield"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-foreground transition-colors flex items-center gap-2 justify-center md:justify-end"
+          >
+            <Github className="h-4 w-4" />
+            github.com/woverfield
+          </a>
         </div>
       </div>
     </footer>

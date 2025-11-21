@@ -4,7 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { RatingBadge } from "@/components/ui/rating-badge";
-import { TopStats } from "@/components/player/top-stats";
+import { PlayerRadarChart } from "@/components/player/radar-chart";
 import { cn } from "@/lib/utils";
 import { fadeIn, slideUp } from "@/lib/animations";
 import { User } from "lucide-react";
@@ -117,12 +117,12 @@ export function PlayerHeader({ player, rankings, className }: PlayerHeaderProps)
           </div>
         </div>
 
-        {/* Top Stats - Right Side */}
+        {/* Player Radar Chart - Right Side */}
         <motion.div
           variants={slideUp}
-          className="shrink-0 lg:w-72"
+          className="shrink-0 lg:w-96"
         >
-          <TopStats player={player} rankings={rankings} />
+          <PlayerRadarChart player={player} />
         </motion.div>
       </div>
     </motion.div>

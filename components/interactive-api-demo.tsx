@@ -27,7 +27,6 @@ export function InteractiveApiDemo() {
   const [demoState, setDemoState] = React.useState<DemoState>("idle");
   const [isPaused, setIsPaused] = React.useState(false);
   const [displayedResponse, setDisplayedResponse] = React.useState("");
-  const [isHovered, setIsHovered] = React.useState(false);
   const [hasStarted, setHasStarted] = React.useState(false);
 
   // Refs for managing timeouts and animation state
@@ -175,8 +174,8 @@ export function InteractiveApiDemo() {
 
   // Effect to start/restart animation when conditions are met
   React.useEffect(() => {
-    // Don't run if paused or hovered
-    if (isPaused || isHovered) return;
+    // Don't run if paused
+    if (isPaused) return;
 
     // Don't run if no data available
     if (!hasAnyData) return;
@@ -214,7 +213,6 @@ export function InteractiveApiDemo() {
   }, [
     currentPlayerIndex,
     isPaused,
-    isHovered,
     hasAnyData,
     currentPlayerLoaded,
     availablePlayerIndices,
@@ -256,11 +254,7 @@ export function InteractiveApiDemo() {
   }, []);
 
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className="relative">
       {/* Main Demo Container - Fixed height to prevent layout shift */}
       <div className="relative pb-20">
         <Card className="overflow-hidden border-slate-200 dark:border-slate-800">
@@ -352,7 +346,11 @@ export function InteractiveApiDemo() {
                 href={`/players/${playerData.slug}?type=curr&team=${encodeURIComponent(playerData.team)}`}
                 className="block"
               >
-                <PlayerCard player={playerData} size="md" />
+                <PlayerCard 
+                  player={playerData} 
+                  size="md" 
+                  className="bg-background/95 backdrop-blur-xl border-primary/20 shadow-2xl"
+                />
               </Link>
             </motion.div>
           )}

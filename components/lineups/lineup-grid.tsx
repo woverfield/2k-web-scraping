@@ -19,6 +19,7 @@ interface LineupGridProps {
   onPlayerClick?: (player: Player) => void;
   maxPlayers?: number;
   title?: string;
+  onTitleChange?: (newTitle: string) => void;
   color?: string;
   horizontal?: boolean;
   lineupId?: string;
@@ -31,12 +32,48 @@ export function LineupGrid({
   onPlayerClick,
   maxPlayers = 5,
   title = "Lineup",
+  onTitleChange,
   color = "var(--chart-1)",
   horizontal = false,
   lineupId = "lineup1",
 }: LineupGridProps) {
+  const [isEditingTitle, setIsEditingTitle] = React.useState(false);
+  const [editedTitle, setEditedTitle] = React.useState(title);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
   // Count actual players (non-undefined)
   const playerCount = players.filter(p => p !== undefined).length;
+
+  // Focus input when editing starts
+  React.useEffect(() => {
+    if (isEditingTitle && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditingTitle]);
+
+  const handleTitleClick = () => {
+    if (onTitleChange) {
+      setIsEditingTitle(true);
+      setEditedTitle(title);
+    }
+  };
+
+  const handleTitleSave = () => {
+    if (onTitleChange && editedTitle.trim()) {
+      onTitleChange(editedTitle.trim());
+    }
+    setIsEditingTitle(false);
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleTitleSave();
+    } else if (e.key === "Escape") {
+      setIsEditingTitle(false);
+      setEditedTitle(title);
+    }
+  };
 
   const handleRemovePlayer = (index: number) => {
     const newPlayers = [...players];
@@ -62,7 +99,28 @@ export function LineupGrid({
             className="w-3 h-3 rounded-full"
             style={{ backgroundColor: color }}
           />
-          <h3 className="font-semibold">{title}</h3>
+          {isEditingTitle ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              onBlur={handleTitleSave}
+              onKeyDown={handleTitleKeyDown}
+              className="font-semibold bg-transparent border-b border-primary focus:outline-none focus:border-primary px-1 -ml-1"
+              maxLength={20}
+            />
+          ) : (
+            <h3
+              className={cn(
+                "font-semibold",
+                onTitleChange && "cursor-pointer hover:text-primary transition-colors"
+              )}
+              onClick={handleTitleClick}
+            >
+              {title}
+            </h3>
+          )}
           <span className="text-sm text-muted-foreground">
             ({playerCount}/{maxPlayers})
           </span>

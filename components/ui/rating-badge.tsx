@@ -29,7 +29,7 @@ export function RatingBadge({
     <Badge
       variant="outline"
       className={cn(
-        "border transition-colors duration-150 rounded-sm px-2 py-0.5",
+        "border transition-colors duration-150 rounded-sm font-rajdhani tracking-wider",
         colors.bg,
         colors.text,
         colors.border,

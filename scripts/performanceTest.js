@@ -3,8 +3,14 @@
  * Measures response times for all API endpoints
  */
 
-const API_BASE = "https://polished-bee-946.convex.site";
-const API_KEY = process.env.TEST_API_KEY || "2k_5assy5i7ldtr1iduzrci7a5moidvtp5j";
+const API_BASE = process.env.API_BASE_URL || "https://polished-bee-946.convex.site";
+const API_KEY = process.env.TEST_API_KEY;
+
+if (!API_KEY) {
+  console.error("❌ TEST_API_KEY environment variable is required");
+  console.error("Set it in your .env.local file or pass it: TEST_API_KEY=your_key node scripts/performanceTest.js");
+  process.exit(1);
+}
 
 const endpoints = [
   {

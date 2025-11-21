@@ -8,7 +8,6 @@ import {
   PolarGrid,
   PolarAngleAxis,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -25,55 +24,122 @@ export interface PlayerRadarChartProps {
   className?: string;
 }
 
+// Custom tick component for proper theming with label and value
+const CustomTick = (props: any) => {
+  const { payload, x, y, textAnchor, index } = props;
+
+  if (!payload) return null;
+
+  // Access the complete data point from the chart data using index
+  const chartData = props.chartData;
+  const dataPoint = chartData?.[index];
+
+  return (
+    <g transform={`translate(${x},${y})`}>
+      {/* Category label */}
+      <text
+        x={0}
+        y={0}
+        dy={-2}
+        textAnchor={textAnchor}
+        className="fill-muted-foreground text-[10px] font-medium"
+      >
+        {payload.value}
+      </text>
+      {/* Rating value */}
+      {dataPoint?.value !== undefined && (
+        <text
+          x={0}
+          y={0}
+          dy={10}
+          textAnchor={textAnchor}
+          className="fill-foreground text-[11px] font-bold"
+        >
+          {dataPoint.value}
+        </text>
+      )}
+    </g>
+  );
+};
+
+// Custom tooltip to show full category names
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="rounded-lg border bg-background p-2 shadow-sm">
+        <div className="grid gap-2">
+          <div className="flex flex-col">
+            <span className="text-[0.70rem] uppercase text-muted-foreground">
+              {data.fullLabel}
+            </span>
+            <span className="font-bold text-foreground">
+              {data.value}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export function PlayerRadarChart({ player, className }: PlayerRadarChartProps) {
   const radarData = React.useMemo(() => calculateRadarStats(player), [player]);
 
-  // Transform data for recharts format
+  // Transform data for recharts format with abbreviated labels
   const chartData = React.useMemo(() => {
     return [
       {
-        category: "Overall",
+        category: "OVR",
+        fullLabel: "Overall",
         value: radarData.overall,
         fullMark: 99,
       },
       {
-        category: "Inside Scoring",
+        category: "INS",
+        fullLabel: "Inside Scoring",
         value: radarData.insideScoring,
         fullMark: 99,
       },
       {
-        category: "Outside Scoring",
+        category: "OUT",
+        fullLabel: "Outside Scoring",
         value: radarData.outsideScoring,
         fullMark: 99,
       },
       {
-        category: "Athleticism",
+        category: "ATH",
+        fullLabel: "Athleticism",
         value: radarData.athleticism,
         fullMark: 99,
       },
       {
-        category: "Playmaking",
+        category: "PLY",
+        fullLabel: "Playmaking",
         value: radarData.playmaking,
         fullMark: 99,
       },
       {
-        category: "Rebounding",
+        category: "REB",
+        fullLabel: "Rebounding",
         value: radarData.rebounding,
         fullMark: 99,
       },
       {
-        category: "Defending",
+        category: "DEF",
+        fullLabel: "Defending",
         value: radarData.defending,
         fullMark: 99,
       },
     ];
   }, [radarData]);
 
-  // Chart config for shadcn - using CSS variable pattern for theme compatibility
+  // Chart config - vibrant primary color
   const chartConfig = {
     value: {
       label: "Rating",
-      color: "hsl(var(--chart-1))",
+      color: "#6366f1", // Indigo-500 as fallback
     },
   } satisfies ChartConfig;
 
@@ -83,29 +149,33 @@ export function PlayerRadarChart({ player, className }: PlayerRadarChartProps) {
       initial="initial"
       animate="animate"
       className={cn(className)}
+      style={{
+        "--color-value": "oklch(var(--primary))",
+        "--color-label": "oklch(var(--foreground))",
+      } as React.CSSProperties}
     >
-      <Card>
-        <CardHeader>
-          <CardTitle>Player Ratings</CardTitle>
-        </CardHeader>
-        <CardContent className="pb-0">
-          <ChartContainer
-            config={chartConfig}
-            className="mx-auto aspect-square max-h-[400px]"
-          >
-            <RechartsRadarChart data={chartData}>
-              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-              <PolarAngleAxis dataKey="category" />
-              <PolarGrid />
-              <Radar
-                dataKey="value"
-                fill="var(--color-value)"
-                fillOpacity={0.6}
-              />
-            </RechartsRadarChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+      <ChartContainer
+        config={chartConfig}
+        className="mx-auto aspect-square w-full h-52"
+      >
+        <RechartsRadarChart data={chartData} >
+          <ChartTooltip cursor={false} content={<CustomTooltip />} />
+          <PolarAngleAxis
+            dataKey="category"
+            tick={<CustomTick chartData={chartData} />}
+            tickSize={15}
+          />
+          <PolarGrid />
+          <Radar
+            dataKey="value"
+            fill="var(--color-value)"
+            fillOpacity={0.7}
+            stroke="var(--color-value)"
+            strokeWidth={2}
+            dot={{ fill: "var(--color-value)", r: 4 }}
+          />
+        </RechartsRadarChart>
+      </ChartContainer>
     </motion.div>
   );
 }

@@ -28,7 +28,7 @@ export interface PlayerAttributes {
   passing?: number;
   postMoves?: number;
 
-  // Defense (8 attributes)
+  // Defense (9 attributes)
   interiorDefense?: number;
   perimeterDefense?: number;
   steal?: number;
@@ -37,14 +37,17 @@ export interface PlayerAttributes {
   defensiveRebound?: number;
   lateralQuickness?: number;
   helpDefenseIQ?: number;
+  passPerception?: number;
 
-  // Athleticism (6 attributes)
+  // Athleticism (8 attributes)
   speed?: number;
   acceleration?: number;
+  agility?: number;
   vertical?: number;
   strength?: number;
   stamina?: number;
   hustle?: number;
+  durability?: number;
 
   // Additional attributes that might exist
   offensiveRebound?: number;
@@ -109,6 +112,13 @@ export interface RadarChartData {
   playmaking: number;
   rebounding: number;
   defending: number;
+}
+
+export interface PositionAverages {
+  position: string;
+  playerCount: number;
+  avgOverall: number;
+  attributes: Record<string, number>;
 }
 
 export interface TopStat {

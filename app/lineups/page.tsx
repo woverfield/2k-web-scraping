@@ -14,6 +14,7 @@ import { LineupGrid } from "@/components/lineups/lineup-grid";
 import { LineupRadarChart } from "@/components/lineups/lineup-radar-chart";
 import { LineupStats } from "@/components/lineups/lineup-stats";
 import { PlayerInfoModal } from "@/components/lineups/player-info-modal";
+import { ShareLineupModal } from "@/components/lineups/share-lineup-modal";
 import { LoadingCard } from "@/components/ui/loading-card";
 import { parseLineupFromURL, lineupToURLParams, LineupPlayer } from "@/lib/lineup-url";
 import { fadeIn } from "@/lib/animations";
@@ -79,9 +80,12 @@ function LineupsContent() {
     return padded;
   });
   const [showLineup2, setShowLineup2] = React.useState(!!initialState.lineup2?.length);
+  const [lineup1Name, setLineup1Name] = React.useState("Lineup 1");
+  const [lineup2Name, setLineup2Name] = React.useState("Lineup 2");
   const [activePlayer, setActivePlayer] = React.useState<Player | null>(null);
   const [modalPlayer, setModalPlayer] = React.useState<Player | null>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
 
   // Handle opening player info modal
   const handleOpenPlayerInfo = (player: Player) => {
@@ -370,14 +374,9 @@ function LineupsContent() {
     setShowLineup2(!showLineup2);
   };
 
-  // Share URL
-  const handleShare = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      // Could add a toast here
-    } catch (err) {
-      console.error("Failed to copy URL:", err);
-    }
+  // Share lineup
+  const handleShare = () => {
+    setIsShareModalOpen(true);
   };
 
   return (
@@ -466,7 +465,8 @@ function LineupsContent() {
                   onPlayersChange={handleLineup1Change}
                   onPlayerDrop={(player) => handleAddPlayer(player, 1)}
                   onPlayerClick={handleOpenPlayerInfo}
-                  title="Lineup 1"
+                  title={lineup1Name}
+                  onTitleChange={setLineup1Name}
                   color="var(--chart-1)"
                   horizontal
                   lineupId="lineup1"
@@ -485,7 +485,8 @@ function LineupsContent() {
                     onPlayersChange={handleLineup2Change}
                     onPlayerDrop={(player) => handleAddPlayer(player, 2)}
                     onPlayerClick={handleOpenPlayerInfo}
-                    title="Lineup 2"
+                    title={lineup2Name}
+                    onTitleChange={setLineup2Name}
                     color="var(--chart-2)"
                     horizontal
                     lineupId="lineup2"
@@ -508,8 +509,8 @@ function LineupsContent() {
                 <LineupRadarChart
                   lineup1={lineup1ForStats}
                   lineup2={showLineup2 ? lineup2ForStats : undefined}
-                  lineup1Name="Lineup 1"
-                  lineup2Name="Lineup 2"
+                  lineup1Name={lineup1Name}
+                  lineup2Name={lineup2Name}
                 />
               </motion.div>
 
@@ -522,8 +523,8 @@ function LineupsContent() {
                 <LineupStats
                   lineup1={lineup1ForStats}
                   lineup2={showLineup2 ? lineup2ForStats : undefined}
-                  lineup1Name="Lineup 1"
-                  lineup2Name="Lineup 2"
+                  lineup1Name={lineup1Name}
+                  lineup2Name={lineup2Name}
                 />
               </motion.div>
             </div>
@@ -533,37 +534,63 @@ function LineupsContent() {
         {/* Drag Overlay */}
         <DragOverlay>
           {activePlayer && (
-            <Card className="w-40 opacity-90 shadow-xl">
-              <CardContent className="p-3">
-                <div className="flex flex-col items-center text-center">
-                  <div className="relative h-12 w-12 rounded-full overflow-hidden bg-muted mb-2">
-                    {activePlayer.playerImage ? (
+            <Card className="w-32 opacity-95 shadow-xl overflow-hidden p-0 gap-0 border-0">
+              <CardContent className="p-0">
+                {/* Player image - starts at top */}
+                <div className="relative aspect-[3/4] bg-muted">
+                  {activePlayer.playerImage ? (
+                    <Image
+                      src={activePlayer.playerImage}
+                      alt={activePlayer.name}
+                      fill
+                      sizes="128px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <User className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+
+                  {/* Team logo - on top of player image */}
+                  {activePlayer.teamImg && (
+                    <div className="absolute top-2 left-2 z-10 w-5 h-5">
                       <Image
-                        src={activePlayer.playerImage}
-                        alt={activePlayer.name}
+                        src={activePlayer.teamImg}
+                        alt={activePlayer.team}
                         fill
-                        sizes="48px"
-                        className="object-cover"
+                        className="object-contain drop-shadow-md"
                       />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center">
-                        <User className="h-6 w-6 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
+
+                  {/* Overall rating - on card, top right */}
                   <div
                     className={cn(
-                      "px-2 py-0.5 rounded-sm mb-1",
-                      getRatingClasses(activePlayer.overall).bg
+                      "absolute top-2 right-2 z-10 px-1.5 py-0.5 rounded-md shadow-lg",
+                      getRatingClasses(activePlayer.overall).bg,
+                      getRatingClasses(activePlayer.overall).shadow
                     )}
                   >
-                    <span className="text-lg font-bold text-white">
+                    <span className="text-sm font-bold tabular-nums text-white">
                       {activePlayer.overall}
                     </span>
                   </div>
-                  <p className="font-medium text-xs truncate w-full">
-                    {activePlayer.name}
-                  </p>
+
+                  {/* Gradient overlay at bottom */}
+                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+
+                  {/* Info section - positioned at bottom of image */}
+                  <div className="absolute bottom-0 left-0 right-0 p-2 z-10">
+                    <div className="min-w-0">
+                      <p className="font-bold text-[9px] text-white truncate drop-shadow-sm">
+                        {activePlayer.name}
+                      </p>
+                      <p className="text-[8px] text-white/80 truncate">
+                        {activePlayer.team}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -575,6 +602,17 @@ function LineupsContent() {
           player={modalPlayer}
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
+        />
+
+        {/* Share Lineup Modal */}
+        <ShareLineupModal
+          open={isShareModalOpen}
+          onOpenChange={setIsShareModalOpen}
+          lineup1={orderedLineup1}
+          lineup2={orderedLineup2}
+          lineup1Name={lineup1Name}
+          lineup2Name={lineup2Name}
+          showLineup2={showLineup2}
         />
       </div>
     </DndContext>

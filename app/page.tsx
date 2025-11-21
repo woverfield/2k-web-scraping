@@ -46,7 +46,7 @@ export default function Home() {
     <>
       <div className="min-h-screen">
         {/* Split Hero Section */}
-        <section className="relative overflow-hidden border-b bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+        <section className="relative overflow-hidden border-b bg-transparent">
           <div className="container mx-auto px-4 py-16 md:py-24">
             <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
               {/* Left Side - Value Proposition */}
@@ -129,7 +129,7 @@ export default function Home() {
         </section>
 
         {/* Explore Section - Live Search */}
-        <section className="border-t bg-white dark:bg-slate-900">
+        <section className="border-t bg-transparent">
           <div className="container mx-auto px-4 py-16 md:py-24">
             <motion.div
               variants={staggerContainer}
@@ -181,7 +181,7 @@ export default function Home() {
         </section>
 
         {/* Final CTA Section */}
-        <section className="border-t bg-slate-50 dark:bg-slate-950">
+        <section className="border-t bg-transparent">
           <div className="container mx-auto px-4 py-16 md:py-24">
             <motion.div
               variants={staggerContainer}

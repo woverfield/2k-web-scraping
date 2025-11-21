@@ -4,14 +4,7 @@ import * as React from "react";
 import { useParams, useSearchParams, notFound } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { BackButton } from "@/components/ui/back-button";
 import { TeamHeader } from "@/components/team/team-header";
 import { TeamRoster } from "@/components/team/team-roster";
 import {
@@ -113,22 +106,8 @@ export default function TeamDetailPage() {
 
   return (
     <div className="container mx-auto max-w-7xl space-y-8 px-4 py-8">
-      {/* Breadcrumb Navigation */}
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/">Home</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/teams">Teams</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{teamStats.team}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      {/* Back Navigation */}
+      <BackButton />
 
       {/* Team Header */}
       <AnimatedContainer variant="fade">

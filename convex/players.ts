@@ -167,6 +167,33 @@ export const updatePlayerPositions = mutation({
   },
 });
 
+/**
+ * Update player attributes (for normalization migration)
+ */
+export const updatePlayer = mutation({
+  args: {
+    id: v.id("players"),
+    attributes: v.optional(v.any()),
+    badges: v.optional(v.any()),
+  },
+  handler: async (ctx, args) => {
+    const updates: any = {
+      lastUpdated: new Date().toISOString(),
+    };
+
+    if (args.attributes !== undefined) {
+      updates.attributes = args.attributes;
+    }
+
+    if (args.badges !== undefined) {
+      updates.badges = args.badges;
+    }
+
+    await ctx.db.patch(args.id, updates);
+    return { success: true };
+  },
+});
+
 // ============================================================================
 // QUERIES
 // ============================================================================
@@ -501,5 +528,64 @@ export const getPlayersBySlugs = query({
     }
 
     return players;
+  },
+});
+
+/**
+ * Get position-based average statistics
+ * Calculates averages across all team types for a given position
+ */
+export const getPositionAverages = query({
+  args: {
+    position: v.string(), // "PG", "SG", "SF", "PF", "C"
+  },
+  handler: async (ctx, args) => {
+    // Get all players
+    let players = await ctx.db.query("players").collect();
+
+    // Filter by position (players can have multiple positions)
+    players = players.filter((p) => p.positions?.includes(args.position));
+
+    if (players.length === 0) {
+      return {
+        position: args.position,
+        playerCount: 0,
+        avgOverall: 0,
+        attributes: {},
+      };
+    }
+
+    // Calculate average overall rating
+    const avgOverall = Math.round(
+      players.reduce((sum, p) => sum + p.overall, 0) / players.length
+    );
+
+    // Calculate averages for all attributes
+    const attributeAverages: Record<string, number> = {};
+    const attributeCounts: Record<string, number> = {};
+
+    players.forEach((player) => {
+      if (player.attributes) {
+        Object.entries(player.attributes).forEach(([key, value]) => {
+          if (typeof value === "number") {
+            attributeAverages[key] = (attributeAverages[key] || 0) + value;
+            attributeCounts[key] = (attributeCounts[key] || 0) + 1;
+          }
+        });
+      }
+    });
+
+    // Calculate final averages and round to whole numbers
+    const averages: Record<string, number> = {};
+    Object.keys(attributeAverages).forEach((key) => {
+      averages[key] = Math.round(attributeAverages[key] / attributeCounts[key]);
+    });
+
+    return {
+      position: args.position,
+      playerCount: players.length,
+      avgOverall,
+      attributes: averages,
+    };
   },
 });

@@ -2,18 +2,44 @@
 
 import * as React from "react";
 import { useQuery } from "convex/react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { api } from "../convex/_generated/api";
 import { Input } from "@/components/ui/input";
-import { PlayerCard } from "@/components/player-card";
+import { FlipCard } from "@/components/playground/flip-card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MasonryRoot, MasonryItem } from "@/components/ui/masonry";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { staggerContainer, staggerItem } from "@/lib/animations";
+
+// Card dimensions for column calculation
+const CARD_WIDTH = 160;
+const GAP = 12;
 
 export function PlayerSearchDemo() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [debouncedQuery, setDebouncedQuery] = React.useState("");
+
+  // Calculate columns based on container width
+  const [columns, setColumns] = React.useState(6);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const calculateColumns = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.offsetWidth;
+        const cols = Math.floor((containerWidth + GAP) / (CARD_WIDTH + GAP));
+        setColumns(Math.max(1, cols));
+      }
+    };
+
+    calculateColumns();
+    window.addEventListener('resize', calculateColumns);
+    return () => window.removeEventListener('resize', calculateColumns);
+  }, []);
+
+  // Items to show - 2 rows for featured, 3 rows for search
+  const featuredCount = columns * 2;
+  const searchCount = columns * 3;
 
   // Debounce search query
   React.useEffect(() => {
@@ -42,15 +68,15 @@ export function PlayerSearchDemo() {
 
   // Use search results or featured players
   const players = debouncedQuery.trim().length >= 2
-    ? searchResults?.slice(0, 12)
-    : featuredPlayers?.slice(0, 8);
+    ? searchResults?.slice(0, searchCount)
+    : featuredPlayers?.slice(0, featuredCount);
 
   const isSearching = debouncedQuery.trim().length >= 2;
   const isLoading = isSearching && searchResults === undefined;
   const showFeatured = !isSearching && featuredPlayers && featuredPlayers.length > 0;
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={containerRef}>
       {/* Search Input */}
       <div className="relative max-w-xl mx-auto">
         <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
@@ -98,31 +124,27 @@ export function PlayerSearchDemo() {
 
         {/* Search Results */}
         {isSearching && searchResults && searchResults.length > 0 && (
-          <motion.div
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          <MasonryRoot
+            columnWidth={160}
+            gap={{ column: 12, row: 12 }}
+            itemHeight={240}
+            overscan={2}
+            linear
+            defaultWidth={1200}
+            defaultHeight={800}
           >
-            <AnimatePresence mode="popLayout">
-              {players?.map((player) => (
+            {players?.map((player) => (
+              <MasonryItem key={player._id}>
                 <motion.div
-                  key={player._id}
-                  variants={staggerItem}
-                  layout
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <PlayerCard
-                    player={player}
-                    href={`/players/${player.slug}?type=${player.teamType}&team=${encodeURIComponent(player.team)}`}
-                    size="sm"
-                  />
+                  <FlipCard player={player} />
                 </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+              </MasonryItem>
+            ))}
+          </MasonryRoot>
         )}
 
         {/* Featured Players (when no search) */}
@@ -131,22 +153,27 @@ export function PlayerSearchDemo() {
             <p className="text-sm text-muted-foreground mb-4 text-center">
               Top Rated Players
             </p>
-            <motion.div
-              variants={staggerContainer}
-              initial="initial"
-              animate="animate"
-              className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            <MasonryRoot
+              columnWidth={160}
+              gap={{ column: 12, row: 12 }}
+              itemHeight={240}
+              overscan={2}
+              linear
+              defaultWidth={1200}
+              defaultHeight={800}
             >
               {players?.map((player) => (
-                <motion.div key={player._id} variants={staggerItem}>
-                  <PlayerCard
-                    player={player}
-                    href={`/players/${player.slug}?type=${player.teamType}&team=${encodeURIComponent(player.team)}`}
-                    size="sm"
-                  />
-                </motion.div>
+                <MasonryItem key={player._id}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    <FlipCard player={player} />
+                  </motion.div>
+                </MasonryItem>
               ))}
-            </motion.div>
+            </MasonryRoot>
           </div>
         )}
 

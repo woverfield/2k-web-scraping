@@ -1,4 +1,5 @@
 import type { Player, RadarChartData, TopStat } from "@/types/player";
+import { normalizeAttributes } from "@/lib/attribute-normalizer";
 
 /**
  * Calculate average of an array of numbers, filtering out null/undefined
@@ -20,7 +21,8 @@ export function avg(values: (number | undefined | null)[]): number {
  * @returns RadarChartData with 7 calculated values
  */
 export function calculateRadarStats(player: Player): RadarChartData {
-  const attrs = player.attributes || {};
+  // Normalize attributes to handle legacy data with old attribute names
+  const attrs = player.attributes ? normalizeAttributes(player.attributes) : {};
 
   return {
     overall: player.overall,
@@ -72,8 +74,11 @@ export function getTopThreeStats(player: Player): TopStat[] {
   const attrs = player.attributes;
   if (!attrs) return [];
 
+  // Normalize attributes to handle legacy data
+  const normalizedAttrs = normalizeAttributes(attrs);
+
   // Convert attributes object to array of [name, value] pairs
-  const attrArray = Object.entries(attrs)
+  const attrArray = Object.entries(normalizedAttrs)
     .filter(([_, value]) => typeof value === "number" && !isNaN(value))
     .map(([name, value]) => ({
       name,
@@ -183,4 +188,24 @@ export function getAttributeCategory(
   if (defending.includes(attributeName)) return "defending";
   if (rebounding.includes(attributeName)) return "rebounding";
   return "other";
+}
+
+/**
+ * Get the primary position from a player's positions array
+ * @param positions - Array of positions (e.g., ["PG", "SG"])
+ * @returns Primary position (first in array), or undefined if no positions
+ */
+export function getPrimaryPosition(positions: string[] | undefined): string | undefined {
+  return positions && positions.length > 0 ? positions[0] : undefined;
+}
+
+/**
+ * Validate if a position code is valid
+ * @param position - Position code to validate
+ * @returns true if position is valid (PG, SG, SF, PF, C)
+ */
+export function isValidPosition(position: string | undefined): boolean {
+  if (!position) return false;
+  const validPositions = ["PG", "SG", "SF", "PF", "C"];
+  return validPositions.includes(position.toUpperCase());
 }
