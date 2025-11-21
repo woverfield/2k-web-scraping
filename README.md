@@ -1,4 +1,4 @@
-# NBA 2K Ratings API
+# NBA2KAPI
 
 A complete REST API and web application for accessing NBA 2K player ratings and team rosters. Includes automated web scraping, a serverless backend, and a modern Next.js frontend.
 

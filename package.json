@@ -1,5 +1,5 @@
 {
-  "name": "nba2k-api",
+  "name": "nba2kapi",
   "version": "1.0.0",
   "private": true,
   "description": "NBA 2K Player Ratings API - Scraper and Backend",

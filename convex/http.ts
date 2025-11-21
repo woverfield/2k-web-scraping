@@ -146,7 +146,7 @@ app.get("/api/health", (c) => {
   return c.json({
     status: "ok",
     timestamp: new Date().toISOString(),
-    service: "NBA 2K API",
+    service: "NBA2KAPI",
     version: "1.0.0",
   });
 });

@@ -10,7 +10,7 @@ export function Footer() {
           {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 font-semibold mb-3">
-              <span>nba2k-api</span>
+              <span>nba2kapi</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Access NBA 2K player ratings and team data via REST API.
