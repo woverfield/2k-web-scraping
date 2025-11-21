@@ -106,7 +106,7 @@ export default function PlayersEndpointPage() {
           <LanguageTabs
             examples={{
               javascript: `const response = await fetch(
-  'https://canny-kingfisher-472.convex.site/api/players?teamType=curr&minRating=90&limit=10',
+  'https://api.nba2kapi.com/api/players?teamType=curr&minRating=90&limit=10',
   {
     headers: {
       'X-API-Key': 'your_api_key_here'
@@ -119,7 +119,7 @@ console.log(data.data); // Array of top 10 current players rated 90+`,
               python: `import requests
 
 response = requests.get(
-    'https://canny-kingfisher-472.convex.site/api/players',
+    'https://api.nba2kapi.com/api/players',
     params={
         'teamType': 'curr',
         'minRating': 90,
@@ -131,7 +131,7 @@ response = requests.get(
 data = response.json()
 print(data['data'])  # Array of top 10 current players rated 90+`,
               curl: `curl -X GET \\
-  'https://canny-kingfisher-472.convex.site/api/players?teamType=curr&minRating=90&limit=10' \\
+  'https://api.nba2kapi.com/api/players?teamType=curr&minRating=90&limit=10' \\
   -H 'X-API-Key: your_api_key_here'`,
             }}
           />

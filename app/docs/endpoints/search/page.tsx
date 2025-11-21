@@ -78,7 +78,7 @@ export default function SearchEndpointPage() {
           <LanguageTabs
             examples={{
               javascript: `const response = await fetch(
-  'https://canny-kingfisher-472.convex.site/api/players/search?q=lebron',
+  'https://api.nba2kapi.com/api/players/search?q=lebron',
   {
     headers: {
       'X-API-Key': 'your_api_key_here'
@@ -91,7 +91,7 @@ console.log(data.data); // Array of matching players`,
               python: `import requests
 
 response = requests.get(
-    'https://canny-kingfisher-472.convex.site/api/players/search',
+    'https://api.nba2kapi.com/api/players/search',
     params={'q': 'lebron'},
     headers={'X-API-Key': 'your_api_key_here'}
 )
@@ -99,7 +99,7 @@ response = requests.get(
 data = response.json()
 print(data['data'])  # Array of matching players`,
               curl: `curl -X GET \\
-  'https://canny-kingfisher-472.convex.site/api/players/search?q=lebron' \\
+  'https://api.nba2kapi.com/api/players/search?q=lebron' \\
   -H 'X-API-Key: your_api_key_here'`,
             }}
           />

@@ -35,7 +35,7 @@ export default function QuickstartPage() {
           <LanguageTabs
             examples={{
               javascript: `const response = await fetch(
-  'https://canny-kingfisher-472.convex.site/api/players/slug/lebron-james',
+  'https://api.nba2kapi.com/api/players/slug/lebron-james',
   {
     headers: {
       'X-API-Key': 'your_api_key_here'
@@ -57,7 +57,7 @@ if (data.success) {
               python: `import requests
 
 response = requests.get(
-    'https://canny-kingfisher-472.convex.site/api/players/slug/lebron-james',
+    'https://api.nba2kapi.com/api/players/slug/lebron-james',
     headers={'X-API-Key': 'your_api_key_here'}
 )
 
@@ -72,7 +72,7 @@ if data['success']:
 # For players on multiple teams, add team param:
 # ?teamType=class&team='95-'96 Bulls`,
               curl: `curl -X GET \\
-  'https://canny-kingfisher-472.convex.site/api/players/slug/lebron-james' \\
+  'https://api.nba2kapi.com/api/players/slug/lebron-james' \\
   -H 'X-API-Key: your_api_key_here'
 
 # For players on multiple teams (like Michael Jordan):
