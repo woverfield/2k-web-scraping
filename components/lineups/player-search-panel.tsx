@@ -124,37 +124,83 @@ export function PlayerSearchPanel({
 }: PlayerSearchPanelProps) {
   const [search, setSearch] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
+  const [offset, setOffset] = React.useState(0);
+  const [accumulatedPlayers, setAccumulatedPlayers] = React.useState<Player[]>([]);
+  const loadMoreRef = React.useRef<HTMLDivElement>(null);
+  const scrollViewportRef = React.useRef<HTMLDivElement>(null);
+  const PAGE_SIZE = 50;
 
   // Debounce search
   React.useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setOffset(0); // Reset offset when search changes
+      setAccumulatedPlayers([]); // Clear accumulated players
+    }, 300);
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Fetch players based on search
-  const searchResults = useQuery(
-    api.players.searchPlayers,
-    debouncedSearch.length >= 2
-      ? { query: debouncedSearch, teamType }
-      : "skip"
+  // Reset when team type changes
+  React.useEffect(() => {
+    setOffset(0);
+    setAccumulatedPlayers([]);
+  }, [teamType]);
+
+  // Fetch players with pagination
+  const playersResult = useQuery(
+    api.players.getAllFiltered,
+    {
+      search: debouncedSearch.length >= 2 ? debouncedSearch : undefined,
+      teamType,
+      minOverall: debouncedSearch.length < 2 ? 85 : undefined,
+      sortBy: "overall-desc",
+      limit: PAGE_SIZE,
+      offset: offset,
+    }
   );
 
-  // Fetch top players when no search
-  const topPlayers = useQuery(
-    api.players.getPlayersByType,
-    debouncedSearch.length < 2
-      ? { teamType, minRating: 85 }
-      : "skip"
-  );
+  // Accumulate players when new data arrives
+  React.useEffect(() => {
+    if (playersResult?.players) {
+      if (offset === 0) {
+        // First load or reset - replace all
+        setAccumulatedPlayers(playersResult.players);
+      } else {
+        // Append new players
+        setAccumulatedPlayers((prev) => {
+          const existingIds = new Set(prev.map(p => p._id));
+          const newPlayers = playersResult.players.filter(p => !existingIds.has(p._id));
+          return [...prev, ...newPlayers];
+        });
+      }
+    }
+  }, [playersResult?.players, offset]);
 
-  const players = debouncedSearch.length >= 2
-    ? searchResults?.slice(0, 50)
-    : topPlayers?.sort((a, b) => b.overall - a.overall).slice(0, 50);
+  const players = accumulatedPlayers;
+  const hasMore = playersResult?.hasMore || false;
+
+  // Intersection Observer for infinite scroll
+  React.useEffect(() => {
+    if (!loadMoreRef.current || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && playersResult !== undefined) {
+          setOffset((prev) => prev + PAGE_SIZE);
+        }
+      },
+      { threshold: 0.1, rootMargin: "200px" }
+    );
+
+    observer.observe(loadMoreRef.current);
+
+    return () => observer.disconnect();
+  }, [hasMore, playersResult]);
 
   return (
-    <div className="flex flex-col h-full min-w-0">
+    <div className="flex flex-col h-full min-w-0 overflow-hidden">
       {/* Header */}
-      <div className="p-3 space-y-3 border-b min-w-0">
+      <div className="p-3 space-y-3 border-b min-w-0 shrink-0">
         <h2 className="text-sm font-semibold">Add Players</h2>
 
         {/* Team Type Tabs */}
@@ -179,9 +225,9 @@ export function PlayerSearchPanel({
       </div>
 
       {/* Player List */}
-      <ScrollArea className="flex-1 min-w-0">
-        <div className="px-2 py-2 space-y-1 min-w-0">
-          {players === undefined ? (
+      <ScrollArea className="flex-1 min-h-0 min-w-0">
+        <div className="px-2 py-2 space-y-1 min-w-0" ref={scrollViewportRef}>
+          {playersResult === undefined && offset === 0 ? (
             // Loading state
             Array.from({ length: 10 }).map((_, i) => (
               <div
@@ -197,16 +243,25 @@ export function PlayerSearchPanel({
                 : "No players available"}
             </p>
           ) : (
-            // Player cards
-            players.map((player) => (
-              <DraggablePlayerCard
-                key={player._id}
-                player={player}
-                onClick={() => onPlayerClick(player)}
-                onInfoClick={onPlayerInfoClick ? () => onPlayerInfoClick(player) : undefined}
-                isSelected={selectedSlugs.includes(`${player.slug}:${player.team || ''}`)}
-              />
-            ))
+            <>
+              {/* Player cards */}
+              {players.map((player) => (
+                <DraggablePlayerCard
+                  key={player._id}
+                  player={player}
+                  onClick={() => onPlayerClick(player)}
+                  onInfoClick={onPlayerInfoClick ? () => onPlayerInfoClick(player) : undefined}
+                  isSelected={selectedSlugs.includes(`${player.slug}:${player.team || ''}`)}
+                />
+              ))}
+
+              {/* Load more trigger */}
+              {hasMore && (
+                <div ref={loadMoreRef} className="h-4 flex items-center justify-center py-4">
+                  <div className="h-8 w-8 rounded-md bg-muted animate-pulse" />
+                </div>
+              )}
+            </>
           )}
 
           {/* Hint when typing */}
