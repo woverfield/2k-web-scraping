@@ -1,5 +1,5 @@
 {
-  "name": "nba2k-api-scraper",
+  "name": "nba2kapi-scraper",
   "version": "1.0.0",
   "description": "Enhanced web scraper for NBA 2K player ratings from 2kratings.com",
   "type": "module",

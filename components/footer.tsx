@@ -72,7 +72,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <a
-                  href="https://github.com/woverfield/nba2k-api"
+                  href="https://github.com/woverfield/nba2kapi"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-foreground"

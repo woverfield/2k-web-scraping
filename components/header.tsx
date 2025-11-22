@@ -142,7 +142,7 @@ export function Header() {
               <TooltipTrigger asChild>
                 <a
                   className={buttonVariants({ variant: "ghost", size: "icon" })}
-                  href="https://github.com/woverfield/2k-web-scraping"
+                  href="https://github.com/woverfield/nba2kapi"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="View on GitHub"
@@ -232,7 +232,7 @@ export function Header() {
               variant: "ghost",
               className: "justify-start",
             })}
-            href="https://github.com/woverfield/2k-web-scraping"
+            href="https://github.com/woverfield/nba2kapi"
             target="_blank"
             rel="noopener noreferrer"
           >

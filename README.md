@@ -84,8 +84,8 @@ curl 'https://api.nba2kapi.com/api/stats'
 
 ```bash
 # Clone repository
-git clone https://github.com/woverfield/nba2k-api.git
-cd nba2k-api
+git clone https://github.com/woverfield/nba2kapi.git
+cd nba2kapi
 
 # Install dependencies
 npm install
@@ -462,7 +462,7 @@ MIT License - see LICENSE file for details
 
 ## Support
 
-- GitHub Issues: [Report bugs or request features](https://github.com/woverfield/nba2k-api/issues)
+- GitHub Issues: [Report bugs or request features](https://github.com/woverfield/nba2kapi/issues)
 - Documentation: [View full docs](https://api.nba2kapi.com/docs)
 
 ## Disclaimer
