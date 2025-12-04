@@ -87,35 +87,42 @@ async function authMiddleware(c: any, next: any) {
     ), 429);
   }
 
-  // Store for later use in request
-  c.set("apiKeyId", rateLimit.apiKeyId);
-  c.set("rateLimit", rateLimit);
-  c.set("requestStartTime", startTime);
-
   // Add rate limit headers
   c.header("X-RateLimit-Limit", rateLimit.limit.toString());
   c.header("X-RateLimit-Remaining", rateLimit.remaining.toString());
   c.header("X-RateLimit-Reset", rateLimit.reset);
 
+  // Capture status code by wrapping response method
+  let responseStatus = 200;
+  const originalJson = c.json.bind(c);
+  
+  c.json = function(body: any, status?: number | ResponseInit) {
+    if (typeof status === "number") {
+      responseStatus = status;
+    } else if (status && typeof status === "object" && "status" in status) {
+      responseStatus = status.status as number;
+    }
+    return originalJson(body, status);
+  };
+
   await next();
 
   // Log request after response
   const responseTime = Date.now() - startTime;
-  const endpoint = c.req.path;
-  const method = c.req.method;
-  const statusCode = c.res.status;
-
-  // Log asynchronously (don't await, fail silently)
-  c.env.runMutation(api.apiKeys.logRequest, {
-    apiKeyId: rateLimit.apiKeyId as Id<"apiKeys">,
-    endpoint,
-    method,
-    statusCode,
-    responseTime,
-    queryParams: c.req.url.includes("?") ? c.req.url.split("?")[1] : undefined,
-  }).catch(() => {
-    // Logging failure is non-critical, fail silently
-  });
+  
+  // Log request - await mutation to ensure it completes
+  try {
+    await c.env.runMutation(api.apiKeys.logRequest, {
+      apiKeyId: rateLimit.apiKeyId as Id<"apiKeys">,
+      endpoint: c.req.path,
+      method: c.req.method,
+      statusCode: responseStatus,
+      responseTime,
+      queryParams: c.req.url.includes("?") ? c.req.url.split("?")[1] : undefined,
+    });
+  } catch (error: unknown) {
+    console.error("Failed to log request:", error);
+  }
 }
 
 // ============================================================================
