@@ -27,6 +27,10 @@ const rajdhani = Rajdhani({
 export const metadata: Metadata = {
   title: "NBA 2K Ratings API",
   description: "Access NBA 2K player ratings, team rosters, and detailed attributes via REST API. Fast, reliable, and developer-friendly.",
+  icons: {
+    icon: "/icon",
+    apple: "/apple-icon",
+  },
 };
 
 export default function RootLayout({
