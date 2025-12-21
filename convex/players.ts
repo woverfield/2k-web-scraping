@@ -3,13 +3,14 @@
  * CRUD operations for NBA 2K player data
  */
 
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 /**
  * Insert a single player into the database
+ * Internal only - not callable from client
  */
-export const insertPlayer = mutation({
+export const insertPlayer = internalMutation({
   args: {
     name: v.string(),
     slug: v.string(),
@@ -25,8 +26,24 @@ export const insertPlayer = mutation({
     build: v.optional(v.string()),
     playerImage: v.optional(v.string()),
     teamImg: v.optional(v.string()),
-    attributes: v.optional(v.any()),
-    badges: v.optional(v.any()),
+    attributes: v.optional(v.record(v.string(), v.number())),
+    badges: v.optional(
+      v.object({
+        total: v.optional(v.number()),
+        legendary: v.optional(v.number()),
+        hallOfFame: v.optional(v.number()),
+        gold: v.optional(v.number()),
+        silver: v.optional(v.number()),
+        bronze: v.optional(v.number()),
+        list: v.optional(v.array(
+          v.object({
+            name: v.string(),
+            tier: v.string(),
+            category: v.optional(v.string()),
+          })
+        )),
+      })
+    ),
     lastUpdated: v.string(),
     createdAt: v.string(),
   },
@@ -68,8 +85,9 @@ async function upsertPlayerHelper(ctx: any, args: any) {
 
 /**
  * Upsert a player - update if exists (by slug), insert if new
+ * Internal only - not callable from client
  */
-export const upsertPlayer = mutation({
+export const upsertPlayer = internalMutation({
   args: {
     name: v.string(),
     slug: v.string(),
@@ -85,8 +103,24 @@ export const upsertPlayer = mutation({
     build: v.optional(v.string()),
     playerImage: v.optional(v.string()),
     teamImg: v.optional(v.string()),
-    attributes: v.optional(v.any()),
-    badges: v.optional(v.any()),
+    attributes: v.optional(v.record(v.string(), v.number())),
+    badges: v.optional(
+      v.object({
+        total: v.optional(v.number()),
+        legendary: v.optional(v.number()),
+        hallOfFame: v.optional(v.number()),
+        gold: v.optional(v.number()),
+        silver: v.optional(v.number()),
+        bronze: v.optional(v.number()),
+        list: v.optional(v.array(
+          v.object({
+            name: v.string(),
+            tier: v.string(),
+            category: v.optional(v.string()),
+          })
+        )),
+      })
+    ),
     lastUpdated: v.string(),
     createdAt: v.optional(v.string()),
   },
@@ -97,8 +131,9 @@ export const upsertPlayer = mutation({
 
 /**
  * Bulk upsert players - efficient batch operation
+ * Internal only - not callable from client
  */
-export const bulkUpsertPlayers = mutation({
+export const bulkUpsertPlayers = internalMutation({
   args: {
     players: v.array(v.any()),
   },
@@ -129,8 +164,9 @@ export const bulkUpsertPlayers = mutation({
 
 /**
  * Delete a player by ID
+ * Internal only - not callable from client
  */
-export const deletePlayer = mutation({
+export const deletePlayer = internalMutation({
   args: { id: v.id("players") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
@@ -140,8 +176,9 @@ export const deletePlayer = mutation({
 
 /**
  * Delete all players (use with caution!)
+ * Internal only - not callable from client
  */
-export const deleteAllPlayers = mutation({
+export const deleteAllPlayers = internalMutation({
   handler: async (ctx) => {
     const players = await ctx.db.query("players").collect();
     for (const player of players) {
@@ -153,8 +190,9 @@ export const deleteAllPlayers = mutation({
 
 /**
  * Update player positions array (for migration)
+ * Internal only - not callable from client
  */
-export const updatePlayerPositions = mutation({
+export const updatePlayerPositions = internalMutation({
   args: {
     playerId: v.id("players"),
     positions: v.array(v.string()),
@@ -169,12 +207,29 @@ export const updatePlayerPositions = mutation({
 
 /**
  * Update player attributes (for normalization migration)
+ * Internal only - not callable from client
  */
-export const updatePlayer = mutation({
+export const updatePlayer = internalMutation({
   args: {
     id: v.id("players"),
-    attributes: v.optional(v.any()),
-    badges: v.optional(v.any()),
+    attributes: v.optional(v.record(v.string(), v.number())),
+    badges: v.optional(
+      v.object({
+        total: v.optional(v.number()),
+        legendary: v.optional(v.number()),
+        hallOfFame: v.optional(v.number()),
+        gold: v.optional(v.number()),
+        silver: v.optional(v.number()),
+        bronze: v.optional(v.number()),
+        list: v.optional(v.array(
+          v.object({
+            name: v.string(),
+            tier: v.string(),
+            category: v.optional(v.string()),
+          })
+        )),
+      })
+    ),
   },
   handler: async (ctx, args) => {
     const updates: any = {

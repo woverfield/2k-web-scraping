@@ -35,7 +35,8 @@ export default defineSchema({
     teamImg: v.optional(v.string()),
 
     // Detailed attributes (flat structure with all possible attributes)
-    attributes: v.optional(v.any()),
+    // Keys are attribute names (e.g., "closeShot", "midRange"), values are numeric ratings
+    attributes: v.optional(v.record(v.string(), v.number())),
 
     // Badges
     badges: v.optional(

@@ -9,13 +9,13 @@ import { Id } from "./_generated/dataModel";
 
 /**
  * Generate a unique API key with 2k_ prefix
+ * Uses cryptographically secure random generation
  */
 function generateApiKey(): string {
-  // Generate random string (32 chars)
-  const randomPart = Array.from({ length: 32 }, () =>
-    Math.random().toString(36).charAt(2)
-  ).join("");
-
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  const randomPart = Array.from(array, (byte) => chars[byte % chars.length]).join('');
   return `2k_${randomPart}`;
 }
 
