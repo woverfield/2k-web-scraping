@@ -10,6 +10,7 @@ import { scrapePlayerDetails } from '../scraper/playerScraper.js';
 import { initBrowser } from '../scraper/utils.js';
 
 const CONVEX_URL = process.env.CONVEX_URL || "https://polished-bee-946.convex.cloud";
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
 
 /**
  * Main scraper function
@@ -20,6 +21,10 @@ async function runScraper(options = {}) {
     teams = null,
     jobId = `scrape_${teamType}_${Date.now()}`
   } = options;
+
+  if (!ADMIN_API_KEY) {
+    throw new Error("Missing ADMIN_API_KEY environment variable");
+  }
 
   const client = new ConvexHttpClient(CONVEX_URL);
   const startTime = new Date().toISOString();
@@ -84,8 +89,11 @@ async function runScraper(options = {}) {
               // Remove playerMisc (not in schema)
               delete fullPlayer.playerMisc;
 
-              // Upsert to Convex
-              const result = await client.mutation(api.players.upsertPlayer, fullPlayer);
+              // Upsert to Convex (using admin-protected mutation)
+              const result = await client.mutation(api.players.adminUpsertPlayer, {
+                adminKey: ADMIN_API_KEY,
+                ...fullPlayer,
+              });
 
               if (result.action === 'inserted') {
                 playersAdded++;

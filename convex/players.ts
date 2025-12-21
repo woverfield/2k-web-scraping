@@ -250,6 +250,112 @@ export const updatePlayer = internalMutation({
 });
 
 // ============================================================================
+// ADMIN-PROTECTED MUTATIONS (for scripts)
+// ============================================================================
+
+/**
+ * Admin-protected update player mutation for scripts
+ * Requires ADMIN_API_KEY for authorization
+ */
+export const adminUpdatePlayer = mutation({
+  args: {
+    adminKey: v.string(),
+    id: v.id("players"),
+    attributes: v.optional(v.record(v.string(), v.number())),
+    badges: v.optional(
+      v.object({
+        total: v.optional(v.number()),
+        legendary: v.optional(v.number()),
+        hallOfFame: v.optional(v.number()),
+        gold: v.optional(v.number()),
+        silver: v.optional(v.number()),
+        bronze: v.optional(v.number()),
+        list: v.optional(v.array(
+          v.object({
+            name: v.string(),
+            tier: v.string(),
+            category: v.optional(v.string()),
+          })
+        )),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    if (args.adminKey !== process.env.ADMIN_API_KEY) {
+      throw new Error("Unauthorized: Invalid admin key");
+    }
+
+    const updates: any = {
+      lastUpdated: new Date().toISOString(),
+    };
+
+    if (args.attributes !== undefined) {
+      updates.attributes = args.attributes;
+    }
+
+    if (args.badges !== undefined) {
+      updates.badges = args.badges;
+    }
+
+    await ctx.db.patch(args.id, updates);
+    return { success: true };
+  },
+});
+
+/**
+ * Admin-protected upsert player mutation for scripts
+ * Requires ADMIN_API_KEY for authorization
+ */
+export const adminUpsertPlayer = mutation({
+  args: {
+    adminKey: v.string(),
+    name: v.string(),
+    slug: v.string(),
+    playerUrl: v.optional(v.string()),
+    team: v.string(),
+    teamType: v.union(v.literal("curr"), v.literal("class"), v.literal("allt")),
+    overall: v.number(),
+    positions: v.optional(v.array(v.string())),
+    height: v.optional(v.string()),
+    weight: v.optional(v.string()),
+    wingspan: v.optional(v.string()),
+    archetype: v.optional(v.string()),
+    build: v.optional(v.string()),
+    playerImage: v.optional(v.string()),
+    teamImg: v.optional(v.string()),
+    attributes: v.optional(v.record(v.string(), v.number())),
+    badges: v.optional(
+      v.object({
+        total: v.optional(v.number()),
+        legendary: v.optional(v.number()),
+        hallOfFame: v.optional(v.number()),
+        gold: v.optional(v.number()),
+        silver: v.optional(v.number()),
+        bronze: v.optional(v.number()),
+        list: v.optional(v.array(
+          v.object({
+            name: v.string(),
+            tier: v.string(),
+            category: v.optional(v.string()),
+          })
+        )),
+      })
+    ),
+    lastUpdated: v.string(),
+    createdAt: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (args.adminKey !== process.env.ADMIN_API_KEY) {
+      throw new Error("Unauthorized: Invalid admin key");
+    }
+
+    // Remove adminKey from args before passing to helper
+    const { adminKey, ...playerData } = args;
+    return await upsertPlayerHelper(ctx, playerData);
+  },
+});
+
+// ============================================================================
 // QUERIES
 // ============================================================================
 

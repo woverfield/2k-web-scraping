@@ -157,8 +157,13 @@ async function migratePlayerData(options: {
 
         if (!options.dryRun) {
           try {
+            const adminKey = process.env.ADMIN_API_KEY;
+            if (!adminKey) {
+              throw new Error("Missing ADMIN_API_KEY environment variable");
+            }
             // Update the player in the database
-            await client.mutation(api.players.updatePlayer, {
+            await client.mutation(api.players.adminUpdatePlayer, {
+              adminKey,
               id: player._id as Id<"players">,
               attributes: normalized,
             });
