@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
-import { Github } from "lucide-react";
+import { Github, Heart, Star } from "lucide-react";
 
 export function Footer() {
   return (
@@ -75,9 +75,21 @@ export function Footer() {
                   href="https://github.com/woverfield/nba2kapi"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
                 >
-                  GitHub
+                  <Star className="h-3.5 w-3.5" />
+                  Star on GitHub
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://buymeacoffee.com/wkoverfield"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
+                >
+                  <Heart className="h-3.5 w-3.5" />
+                  Buy Me a Coffee
                 </a>
               </li>
               <li>

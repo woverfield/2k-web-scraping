@@ -25,11 +25,44 @@ const rajdhani = Rajdhani({
 });
 
 export const metadata: Metadata = {
-  title: "NBA 2K Ratings API",
-  description: "Access NBA 2K player ratings, team rosters, and detailed attributes via REST API. Fast, reliable, and developer-friendly.",
+  metadataBase: new URL('https://nba2kapi.com'),
+  title: {
+    default: 'NBA 2K API - Free REST API for Player Ratings & Stats',
+    template: '%s | NBA 2K API',
+  },
+  description: 'The only free NBA 2K API. Access player ratings, team rosters, attributes, and badges via REST API. Developer-friendly documentation and playground.',
+  keywords: ['NBA 2K API', 'NBA 2K ratings API', 'NBA 2K player stats', '2K API', 'basketball API', 'NBA 2K player ratings', 'NBA 2K25 API'],
+  authors: [{ name: 'Wilson Overfield', url: 'https://github.com/woverfield' }],
+  creator: 'Wilson Overfield',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://nba2kapi.com',
+    siteName: 'NBA 2K API',
+    title: 'NBA 2K API - Free REST API for Player Ratings',
+    description: 'The only free NBA 2K API. Access player ratings, team rosters, and detailed attributes via REST API.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'NBA 2K API',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'NBA 2K API - Free REST API for Player Ratings',
+    description: 'The only free NBA 2K API for developers. Access player ratings, team rosters, and stats.',
+    images: ['/og-image.png'],
+  },
   icons: {
     icon: "/icon",
     apple: "/apple-icon",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

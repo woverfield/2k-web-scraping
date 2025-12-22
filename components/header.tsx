@@ -3,6 +3,7 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { Logo } from "@/components/logo";
 import { MenuToggleIcon } from "@/components/menu-toggle-icon";
+import { GitHubStars } from "@/components/github-stars";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -141,17 +142,18 @@ export function Header() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <a
-                  className={buttonVariants({ variant: "ghost", size: "icon" })}
+                  className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-1.5 px-2")}
                   href="https://github.com/woverfield/nba2kapi"
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="View on GitHub"
+                  aria-label="Star on GitHub"
                 >
                   <Github className="h-4 w-4" />
+                  <GitHubStars repo="woverfield/nba2kapi" />
                 </a>
               </TooltipTrigger>
               <TooltipContent>
-                <p>View on GitHub</p>
+                <p>Star on GitHub</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
