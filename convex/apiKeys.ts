@@ -44,7 +44,7 @@ export const createApiKey = mutation({
       email: args.email,
       name: args.name,
       requestCount: 0,
-      rateLimit: 100, // Default: 100 requests per hour
+      rateLimit: 500, // Default: 500 requests per hour
       isActive: true,
       createdAt: new Date().toISOString(),
     });
@@ -52,7 +52,7 @@ export const createApiKey = mutation({
     return {
       apiKey: key,
       id: apiKeyId,
-      rateLimit: 100,
+      rateLimit: 500,
     };
   },
 });
@@ -81,9 +81,10 @@ export const validateApiKey = query({
 });
 
 /**
- * Check if API key is under rate limit
+ * Check and consume rate limit (atomic - prevents race conditions)
+ * This is a mutation because it increments the counter atomically
  */
-export const checkRateLimit = query({
+export const checkRateLimit = mutation({
   args: { key: v.string() },
   handler: async (ctx, args) => {
     const apiKey = await ctx.db
@@ -95,24 +96,24 @@ export const checkRateLimit = query({
       return { allowed: false, reason: "API key not found" };
     }
 
-    // Get request count in the last hour using compound index for better performance
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const now = new Date();
+    const currentHour = new Date(now);
+    currentHour.setMinutes(0, 0, 0);
+    const currentHourStr = currentHour.toISOString();
 
-    const recentRequests = await ctx.db
-      .query("requestLogs")
-      .withIndex("by_apiKeyId_and_timestamp", (q) =>
-        q.eq("apiKeyId", apiKey._id).gte("timestamp", oneHourAgo)
-      )
-      .collect();
+    // Check if we're in a new hour (reset counter)
+    let currentRequests = apiKey.currentHourRequests || 0;
+    const hourStart = apiKey.currentHourStart;
 
-    const requestsInLastHour = recentRequests.length;
-    const remaining = Math.max(0, apiKey.rateLimit - requestsInLastHour);
+    if (!hourStart || hourStart !== currentHourStr) {
+      // New hour - reset counter
+      currentRequests = 0;
+    }
 
-    if (requestsInLastHour >= apiKey.rateLimit) {
-      // Calculate reset time (next hour boundary)
-      const now = new Date();
-      const resetTime = new Date(now);
-      resetTime.setHours(now.getHours() + 1, 0, 0, 0);
+    // Check if at limit BEFORE incrementing
+    if (currentRequests >= apiKey.rateLimit) {
+      const resetTime = new Date(currentHour);
+      resetTime.setHours(resetTime.getHours() + 1);
 
       return {
         allowed: false,
@@ -123,23 +124,30 @@ export const checkRateLimit = query({
       };
     }
 
-    // Calculate reset time (next hour boundary)
-    const now = new Date();
-    const resetTime = new Date(now);
-    resetTime.setHours(now.getHours() + 1, 0, 0, 0);
+    // Atomically increment counter
+    await ctx.db.patch(apiKey._id, {
+      currentHourRequests: currentRequests + 1,
+      currentHourStart: currentHourStr,
+      requestCount: apiKey.requestCount + 1,
+      lastRequest: now.toISOString(),
+    });
+
+    const resetTime = new Date(currentHour);
+    resetTime.setHours(resetTime.getHours() + 1);
+    const remaining = apiKey.rateLimit - (currentRequests + 1);
 
     return {
       allowed: true,
       apiKeyId: apiKey._id,
       limit: apiKey.rateLimit,
-      remaining,
+      remaining: Math.max(0, remaining),
       reset: resetTime.toISOString(),
     };
   },
 });
 
 /**
- * Log an API request
+ * Log an API request (for analytics only - counting is done in checkRateLimit)
  */
 export const logRequest = mutation({
   args: {
@@ -151,7 +159,7 @@ export const logRequest = mutation({
     queryParams: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Create request log
+    // Create request log for analytics
     const logData: any = {
       apiKeyId: args.apiKeyId,
       endpoint: args.endpoint,
@@ -161,20 +169,13 @@ export const logRequest = mutation({
       timestamp: new Date().toISOString(),
     };
 
-    if (args.queryParams !== undefined) {
+    // Don't log sensitive query params (like adminKey)
+    if (args.queryParams !== undefined && !args.queryParams.includes("adminKey")) {
       logData.queryParams = args.queryParams;
     }
 
     await ctx.db.insert("requestLogs", logData);
-
-    // Update API key's last request time and total count
-    const apiKey = await ctx.db.get(args.apiKeyId);
-    if (apiKey) {
-      await ctx.db.patch(args.apiKeyId, {
-        lastRequest: new Date().toISOString(),
-        requestCount: apiKey.requestCount + 1,
-      });
-    }
+    // Note: requestCount is now updated atomically in checkRateLimit
   },
 });
 
@@ -252,20 +253,21 @@ export const getApiKeyStats = query({
       throw new Error("API key not found");
     }
 
-    // Get request count in the last hour using compound index for better performance
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    // Use atomic counter for current hour requests
+    const now = new Date();
+    const currentHour = new Date(now);
+    currentHour.setMinutes(0, 0, 0);
+    const currentHourStr = currentHour.toISOString();
 
-    const recentRequests = await ctx.db
-      .query("requestLogs")
-      .withIndex("by_apiKeyId_and_timestamp", (q) =>
-        q.eq("apiKeyId", apiKey._id).gte("timestamp", oneHourAgo)
-      )
-      .collect();
+    // Check if counter is for current hour
+    let requestsThisHour = 0;
+    if (apiKey.currentHourStart === currentHourStr) {
+      requestsThisHour = apiKey.currentHourRequests || 0;
+    }
 
-    const requestsThisHour = recentRequests.length;
     const remaining = Math.max(0, apiKey.rateLimit - requestsThisHour);
 
-    // Get last 10 requests
+    // Get last 10 requests for display
     const allRequests = await ctx.db
       .query("requestLogs")
       .withIndex("by_apiKeyId", (q) => q.eq("apiKeyId", apiKey._id))
@@ -273,9 +275,8 @@ export const getApiKeyStats = query({
       .take(10);
 
     // Calculate reset time (next hour boundary)
-    const now = new Date();
-    const resetTime = new Date(now);
-    resetTime.setHours(now.getHours() + 1, 0, 0, 0);
+    const resetTime = new Date(currentHour);
+    resetTime.setHours(resetTime.getHours() + 1);
 
     return {
       apiKey: {

@@ -78,9 +78,13 @@ export default defineSchema({
     userId: v.optional(v.string()), // For future user accounts
 
     // Rate limiting
-    requestCount: v.number(), // Total requests made
+    requestCount: v.number(), // Total requests made (all time)
     lastRequest: v.optional(v.string()), // ISO timestamp
     rateLimit: v.number(), // Requests per hour
+
+    // Atomic hourly counter (prevents race conditions)
+    currentHourRequests: v.optional(v.number()), // Requests in current hour
+    currentHourStart: v.optional(v.string()), // ISO timestamp of hour start
 
     // Status
     isActive: v.boolean(),

@@ -62,9 +62,9 @@ async function authMiddleware(c: any, next: any) {
     ), 401);
   }
 
-  // Check rate limit
+  // Check rate limit (atomic - increments counter)
   const startTime = Date.now();
-  const rateLimit = await c.env.runQuery(api.apiKeys.checkRateLimit, { key: apiKey });
+  const rateLimit = await c.env.runMutation(api.apiKeys.checkRateLimit, { key: apiKey });
 
   if (!rateLimit.allowed) {
     c.header("X-RateLimit-Limit", rateLimit.limit?.toString() || "100");
@@ -194,8 +194,7 @@ app.post("/api/register",
       console.error("Registration error:", error);
       return c.json(errorResponse(
         "Failed to create API key",
-        "REGISTRATION_ERROR",
-        error.message
+        "REGISTRATION_ERROR"
       ), 500);
     }
   }
@@ -225,8 +224,7 @@ app.get("/api/dashboard/usage", authMiddleware, async (c) => {
     console.error("Dashboard error:", error);
     return c.json(errorResponse(
       "Failed to fetch usage stats",
-      "DASHBOARD_ERROR",
-      error.message
+      "DASHBOARD_ERROR"
     ), 500);
   }
 });
@@ -272,8 +270,7 @@ app.post("/api/admin/scrape",
       console.error("Scrape trigger error:", error);
       return c.json(errorResponse(
         "Failed to start scraping job",
-        "SCRAPE_ERROR",
-        error.message
+        "SCRAPE_ERROR"
       ), 500);
     }
   }
@@ -307,8 +304,7 @@ app.get("/api/admin/scrape/jobs",
       console.error("Get jobs error:", error);
       return c.json(errorResponse(
         "Failed to fetch scrape jobs",
-        "QUERY_ERROR",
-        error.message
+        "QUERY_ERROR"
       ), 500);
     }
   }
@@ -348,8 +344,7 @@ app.get("/api/admin/scrape/:jobId",
       console.error("Get job status error:", error);
       return c.json(errorResponse(
         "Failed to fetch job status",
-        "QUERY_ERROR",
-        error.message
+        "QUERY_ERROR"
       ), 500);
     }
   }
@@ -419,8 +414,7 @@ app.get("/api/players",
       console.error("Error fetching players:", error);
       return c.json(errorResponse(
         "Failed to fetch players",
-        "QUERY_ERROR",
-        error.message
+        "QUERY_ERROR"
       ), 500);
     }
   }
@@ -461,8 +455,7 @@ app.get("/api/players/search",
       console.error("Search error:", error);
       return c.json(errorResponse(
         "Search failed",
-        "SEARCH_ERROR",
-        error.message
+        "SEARCH_ERROR"
       ), 500);
     }
   }
@@ -500,8 +493,7 @@ app.get("/api/players/:id", authMiddleware, async (c) => {
     console.error("Error fetching player:", error);
     return c.json(errorResponse(
       "Failed to fetch player",
-      "QUERY_ERROR",
-      error.message
+      "QUERY_ERROR"
     ), 500);
   }
 });
@@ -544,8 +536,7 @@ app.get("/api/players/slug/:slug",
       console.error("Error fetching player by slug:", error);
       return c.json(errorResponse(
         "Failed to fetch player",
-        "QUERY_ERROR",
-        error.message
+        "QUERY_ERROR"
       ), 500);
     }
   }
@@ -577,8 +568,7 @@ app.get("/api/teams",
       console.error("Error fetching teams:", error);
       return c.json(errorResponse(
         "Failed to fetch teams",
-        "QUERY_ERROR",
-        error.message
+        "QUERY_ERROR"
       ), 500);
     }
   }
@@ -632,8 +622,7 @@ app.get("/api/teams/:teamName/roster",
       console.error("Error fetching roster:", error);
       return c.json(errorResponse(
         "Failed to fetch roster",
-        "QUERY_ERROR",
-        error.message
+        "QUERY_ERROR"
       ), 500);
     }
   }
@@ -656,8 +645,7 @@ app.get("/api/stats", async (c) => {
     console.error("Error fetching stats:", error);
     return c.json(errorResponse(
       "Failed to fetch statistics",
-      "QUERY_ERROR",
-      error.message
+      "QUERY_ERROR"
     ), 500);
   }
 });
